@@ -183,19 +183,80 @@ svg { width: 16px; height: 16px; fill: currentColor; flex: none; }
 .switch:checked::before { transform: translateX(16px); background: var(--surface); }
 .switch:focus-visible { outline: 2px solid var(--muted); outline-offset: 2px; }
 
+/* Menus: the browser's customizable select (appearance: base-select), styled
+   like the rest of the page but keeping native keyboard, screen reader and
+   dismiss behavior. Browsers without it show their plain menu. The list
+   fades and scales in (180ms) and out (120ms) without sliding, since it
+   opens upward when there's no room below. */
+select, ::picker(select) { appearance: base-select; }
 select {
   flex: none;
-  max-width: 200px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 220px;
   height: 30px;
-  padding: 0 8px;
+  padding: 0 8px 0 10px;
   border: 1px solid var(--rim);
   border-radius: 8px;
   background: var(--canvas);
   color: var(--ink);
   font: 13px var(--font);
   cursor: pointer;
+  transition: background-color 150ms ease;
 }
 select:focus-visible { outline: 2px solid var(--muted); outline-offset: 2px; }
+/* Phosphor caret-down (MIT) instead of the default triangle. */
+select::picker-icon {
+  content: "";
+  width: 12px;
+  height: 12px;
+  background: var(--faint);
+  mask: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'><path d='M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z'/></svg>") center / contain no-repeat;
+  transition: rotate 200ms var(--ease-out);
+}
+select:open::picker-icon { rotate: 180deg; }
+@media (hover: hover) and (pointer: fine) {
+  select:hover { background: color-mix(in srgb, var(--ink) 6%, var(--canvas)); }
+}
+
+::picker(select) {
+  min-width: anchor-size(width);
+  margin: 4px 0;
+  padding: 4px;
+  border: 1px solid var(--rim);
+  border-radius: 10px;
+  background: var(--raised);
+  box-shadow: var(--panel-shadow);
+  opacity: 0;
+  transform: scale(0.97);
+  transition:
+    opacity 120ms var(--ease-out),
+    transform 120ms var(--ease-out),
+    overlay 120ms allow-discrete,
+    display 120ms allow-discrete;
+}
+::picker(select):popover-open {
+  opacity: 1;
+  transform: none;
+  transition-duration: 180ms;
+}
+@starting-style {
+  ::picker(select):popover-open { opacity: 0; transform: scale(0.97); }
+}
+option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font: 13px var(--font);
+  color: var(--ink);
+  cursor: pointer;
+}
+option:hover, option:focus-visible { background: var(--selected); outline: none; }
+option:checked { color: var(--ink-strong); font-weight: 500; }
+option::checkmark { order: 1; margin-left: auto; color: var(--ink-strong); }
 
 .section-foot {
   display: flex;
@@ -371,6 +432,7 @@ h3 {
 .actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 4px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .seg::before, .switch::before { transition: none; }
+  .seg::before, .switch::before, select::picker-icon { transition: none; }
+  ::picker(select), ::picker(select):popover-open { transform: none; }
   dialog, dialog[open] { transform: none; }
 }
