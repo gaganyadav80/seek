@@ -43,12 +43,15 @@ function togglePaletteFrame(src) {
   frame.setAttribute('aria-label', 'Seek');
   // Inline !important so page CSS can't interfere. color-scheme: normal keeps
   // the iframe transparent even on pages that declare a dark color-scheme.
+  // The blur has to live here: a backdrop-filter inside the iframe can't see
+  // the page, and without it the dark panel sinks into dark pages.
   frame.setAttribute(
     'style',
     [
       'position:fixed', 'inset:0', 'width:100vw', 'height:100vh',
       'max-width:none', 'max-height:none', 'margin:0', 'padding:0',
       'border:0', 'background:transparent', 'color-scheme:normal',
+      'backdrop-filter:blur(6px)',
       'z-index:2147483647', 'display:block', 'opacity:1', 'transform:none',
     ].map((d) => d + ' !important').join(';')
   );
