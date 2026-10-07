@@ -15,8 +15,8 @@ Press **⌘⇧K** (Mac) or **Ctrl+Shift+K** (Windows/Linux) anywhere in your bro
 | ⌘↵ / Ctrl+↵ | Open in the current tab |
 | Tab / Shift+Tab | Cycle filter: All, Tabs, Bookmarks, History, Settings |
 | Tab (on a site shortcut) | Search that site, e.g. `yt` Tab `lofi` ↵ |
-| ⌫ on empty / Esc | Leave site search |
-| Esc | Close |
+| ⌫ on empty | Leave site search, back to what you typed before Tab |
+| Esc | Leave site search with the field cleared, or close |
 
 Words are matched independently, so `gh flutter` finds `github.com/flutter/flutter`.
 

@@ -51,6 +51,7 @@ const state = {
   selected: 0,
   originTab: null,
   site: null, // active site search
+  typed: '', // what was typed before entering site search; ⌫ on an empty field brings it back
   hint: null, // site that Tab would switch to
 };
 
@@ -451,13 +452,15 @@ function updateHint() {
   $hint.replaceChildren(kbd, `to search ${state.hint.name}`);
 }
 
-function setSite(site) {
+// `text` fills the field afterwards (entering a site search empties it).
+function setSite(site, text = '') {
+  if (site) state.typed = state.query;
   state.site = site;
   $search.toggleAttribute('data-site', !!site);
   $chip.hidden = !site;
   $chip.textContent = site ? site.name : '';
   $q.placeholder = site ? `Search ${site.name}` : PLACEHOLDER;
-  $q.value = state.query = '';
+  $q.value = state.query = text;
   updateHint();
   rank();
 
@@ -562,7 +565,7 @@ window.addEventListener('keydown', (e) => {
     else close();
   } else if (e.key === 'Backspace' && state.site && !$q.value) {
     e.preventDefault();
-    setSite(null);
+    setSite(null, state.typed); // back to what was typed before Tab; Esc leaves with it cleared
   } else if (e.key === 'Tab') {
     e.preventDefault();
     if (state.hint && !e.shiftKey) return setSite(state.hint);
