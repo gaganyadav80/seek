@@ -32,7 +32,9 @@ main {
   gap: 14px;
   margin-bottom: 36px;
 }
-.title img { border-radius: 10px; }
+/* Product icon on light, the monochrome mark on dark (the black box would sink into it). */
+:root[data-theme="dark"] .logo-light,
+:root[data-theme="light"] .logo-dark { display: none; }
 h1 {
   margin: 0;
   font-size: 26px;

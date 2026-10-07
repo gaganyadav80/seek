@@ -12,11 +12,7 @@ const MAX_RESULTS = 60;
 
 document.documentElement.dataset.mode = MODE;
 if (MODE === 'page') {
-  // Look like a browser's own new tab in the tab strip: a muted gray icon
-  // (browsers don't expose theirs to extensions) and the title it had before the swap.
-  const icon = Object.assign(document.createElement('link'), { rel: 'icon', href: 'icons/newtab.svg' });
-  document.head.append(icon);
-  document.title = 'New tab';
+  // Icon and fallback title come from palette.html; use the real new tab's title if it had one.
   chrome.storage.session.get('newTabTitle').then(({ newTabTitle }) => newTabTitle && (document.title = newTabTitle));
 }
 const prefs = await loadPrefs();
