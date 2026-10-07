@@ -247,7 +247,7 @@ function rank({ keepSelection = false } = {}) {
         results.push(r);
         if (results.length >= MAX_RESULTS) break;
       }
-      if (!site) results.push({ item: webSearchItem(raw), hl: null });
+      if (!site) results.unshift({ item: webSearchItem(raw), hl: null }); // always the first row
     } else {
       results = scored.slice(0, MAX_RESULTS);
     }
@@ -260,7 +260,10 @@ function rank({ keepSelection = false } = {}) {
 
   state.results = results;
   const keep = prevKey ? results.findIndex((r) => r.item.key === prevKey) : -1;
-  state.selected = keep >= 0 ? keep : 0;
+  // The web search row sits on top, but the highlight starts on the best match
+  // below it, so Enter still opens that; ↑ reaches the web search.
+  const first = results[0]?.item.type === 'search' && results.length > 1 ? 1 : 0;
+  state.selected = keep >= 0 ? keep : first;
   renderResults();
 }
 
