@@ -33,7 +33,7 @@ function subsequence(token, text, lower, preferBoundary) {
   return positions;
 }
 
-/** Match one lowercase token against `text`. Returns { score, positions } or null. */
+/** Match one lowercase token against `text`. Returns { score, positions, exact } or null; exact = the token appears whole. */
 export function matchToken(token, text) {
   if (!text) return null;
   const lower = text.toLowerCase();
@@ -46,7 +46,7 @@ export function matchToken(token, text) {
     score -= Math.min(idx, 60) * 0.5;
     if (token.length === lower.length) score += 60;
     const positions = Array.from({ length: token.length }, (_, k) => idx + k);
-    return { score, positions };
+    return { score, positions, exact: true };
   }
 
   if (token.length < 2) return null;
@@ -66,15 +66,17 @@ export function matchToken(token, text) {
   }
   score -= (span - token.length) * 0.6;
   score -= Math.min(positions[0], 60) * 0.3;
-  return { score: Math.max(score, 1), positions };
+  return { score: Math.max(score, 1), positions, exact: false };
 }
 
 /**
  * Every whitespace-separated token must match the title, URL or keywords.
- * Returns { score, titlePositions, urlPositions } or null.
+ * Returns { score, exact, titlePositions, urlPositions } or null; exact = every
+ * token appears whole somewhere, rather than as scattered letters.
  */
 export function scoreItem(tokens, item) {
   let total = 0;
+  let exact = true;
   const titlePositions = new Set();
   const urlPositions = new Set();
 
@@ -88,12 +90,13 @@ export function scoreItem(tokens, item) {
     const best = Math.max(ts, us, k ? k.score * 0.9 : -1);
     if (best < 0) return null;
     total += best;
+    exact &&= [t, u, k].some((m) => m?.exact);
     // Highlight the token in whichever visible line it matched better.
     // Keyword-only matches (bookmark folders, setting aliases) aren't shown.
     if (t && ts >= us) t.positions.forEach((p) => titlePositions.add(p));
     else if (u) u.positions.forEach((p) => urlPositions.add(p));
   }
-  return { score: total, titlePositions, urlPositions };
+  return { score: total, exact, titlePositions, urlPositions };
 }
 
 /** Site whose shortcut, or 2+ letters of its name, is the whole query. */

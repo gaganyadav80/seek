@@ -178,16 +178,18 @@ function webSearchItem(text) {
 
 // ---------- ranking ----------
 
+// Results list open tabs first, then history, then bookmarks, then browser
+// settings, the best match first within each. Loose matches (the words only
+// as scattered letters) come after all of those, in the same order.
+const TYPE_ORDER = { tab: 0, history: 1, bookmark: 2, setting: 3 };
+
+// Within a type: recent tabs, and often and recently visited history, rank higher.
 function boost(item, now) {
   switch (item.type) {
     case 'tab': {
       const hours = (now - item.lastAccessed) / 3.6e6;
-      return 120 + Math.max(0, 40 - hours * 4);
+      return Math.max(0, 40 - hours * 4);
     }
-    case 'bookmark':
-      return 60;
-    case 'setting':
-      return 40;
     case 'history': {
       const days = (now - item.lastVisitTime) / 8.64e7;
       return Math.min(Math.log2(1 + item.visitCount) * 12, 80) + Math.max(0, 30 - days);
@@ -241,12 +243,12 @@ function rank({ keepSelection = false } = {}) {
       for (const item of state.items[type]) {
         if (!onSite(item)) continue;
         const m = scoreItem(tokens, item);
-        if (m) scored.push({ item, hl: m.titlePositions, urlHl: m.urlPositions, score: m.score + boost(item, now) });
+        if (m) scored.push({ item, hl: m.titlePositions, urlHl: m.urlPositions, loose: !m.exact, score: m.score + boost(item, now) });
       }
     }
-    scored.sort((a, b) => b.score - a.score);
+    scored.sort((a, b) => a.loose - b.loose || TYPE_ORDER[a.item.type] - TYPE_ORDER[b.item.type] || b.score - a.score);
 
-    // In "All", show each URL once (the tab beats the bookmark beats history).
+    // In "All", show each URL once, as its first type (a tab, then history, then a bookmark).
     if (scope === 'all') {
       const seen = new Set();
       results = [];

@@ -83,3 +83,10 @@ test('shows URLs without the scheme, and never the browser\'s name', () => {
   assert.equal(displayUrl('about:blank'), 'about:blank');
   assert.equal(displayUrl(undefined), '');
 });
+
+test('marks whole-word matches as exact and scattered letters as loose', () => {
+  assert.equal(scoreItem(['stack'], { title: 'Stack Overflow', displayUrl: 'stackoverflow.com' }).exact, true);
+  assert.equal(scoreItem(['stack'], { title: 'Approximate string matching - Wikipedia', displayUrl: 'en.wikipedia.org/wiki/Approximate_string_matching' }).exact, false);
+  assert.equal(scoreItem(['gh', 'flutter'], gh).exact, false, 'gh only as letters of github');
+  assert.equal(scoreItem(['git', 'flutter'], gh).exact, true);
+});
