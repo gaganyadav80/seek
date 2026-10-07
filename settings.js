@@ -30,7 +30,7 @@ export const CHROME_PAGES = [
   ['Reset settings', 'chrome://settings/reset', 'restore defaults'],
   ['You and Google', 'chrome://settings/people', 'profile account sync'],
   ['Sync', 'chrome://settings/syncSetup', 'google account'],
-  ['About Chrome', 'chrome://settings/help', 'update version'],
+  ['About this browser', 'chrome://settings/help', 'update version chrome brave edge'],
   ['Extensions', 'chrome://extensions', 'addons plugins'],
   ['Extension keyboard shortcuts', 'chrome://extensions/shortcuts', 'hotkeys keybindings commands'],
   ['Downloads', 'chrome://downloads', 'files'],

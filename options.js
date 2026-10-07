@@ -29,7 +29,7 @@ function renderControls() {
   for (const box of switches) box.checked = prefs.sources[box.dataset.source] !== false;
   $('enter-opens').value = prefs.enterOpens;
   $('web-search').replaceChildren(
-    new Option("Chrome's default", ''),
+    new Option('Browser default', ''),
     ...prefs.sites.map((s) => new Option(s.name, s.keyword))
   );
   $('web-search').value = prefs.sites.some((s) => s.keyword === prefs.webSearch) ? prefs.webSearch : '';
@@ -59,7 +59,7 @@ async function renderShortcut() {
   $('change-shortcut').textContent = keys.length ? 'Change' : 'Set shortcut';
 }
 
-// Extensions can't set their own shortcut; Chrome's shortcuts page can.
+// Extensions can't set their own shortcut; the browser's shortcuts page can.
 $('change-shortcut').addEventListener('click', () => chrome.tabs.create({ url: 'chrome://extensions/shortcuts' }));
 window.addEventListener('focus', renderShortcut); // pick up a change made there
 renderShortcut();
