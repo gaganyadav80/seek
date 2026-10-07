@@ -73,21 +73,25 @@ function togglePaletteFrame(src) {
   // setting through for the System theme. `normal` isn't enough: pages with
   // <meta name="color-scheme" content="dark"> (scrimba.com) turn it dark.
   // The blur has to live here: a backdrop-filter inside the iframe can't see
-  // the page, and without it the dark panel sinks into dark pages.
+  // the page, and without it the dark panel sinks into dark pages. It fades
+  // in once Seek shows ('seek:open'), with the bar's tap; a transition, since
+  // an animation couldn't override the !important.
   frame.setAttribute(
     'style',
     [
       'position:fixed', 'inset:0', 'width:100vw', 'height:100vh',
       'max-width:none', 'max-height:none', 'margin:0', 'padding:0',
       'border:0', 'background:transparent', 'color-scheme:light dark',
-      'backdrop-filter:blur(6px)',
+      'backdrop-filter:blur(0px)', 'transition:backdrop-filter 240ms cubic-bezier(0.33, 1, 0.68, 1)',
       'z-index:2147483647', 'display:block', 'opacity:1', 'transform:none',
     ].map((d) => d + ' !important').join(';')
   );
 
   const prevFocus = document.activeElement;
   const onMessage = (e) => {
-    if (e.source === frame.contentWindow && e.data === 'seek:close') cleanup();
+    if (e.source !== frame.contentWindow) return;
+    if (e.data === 'seek:open') frame.style.setProperty('backdrop-filter', 'blur(6px)', 'important');
+    if (e.data === 'seek:close') cleanup();
   };
   function cleanup() {
     window.removeEventListener('message', onMessage);

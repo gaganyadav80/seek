@@ -64,7 +64,9 @@ html, body {
 }
 ::selection { background: var(--selection); color: var(--ink-strong); }
 
-/* No open/close animation: it's summoned by a shortcut many times a day. */
+/* Over a web page the bar opens with the site search tap (below, no glow)
+   while this scrim and the page blur (background.js) fade in. It closes
+   instantly; the dropdown and the new tab don't animate. */
 .backdrop {
   position: fixed;
   inset: 0;
@@ -196,6 +198,9 @@ html, body {
   pointer-events: none;
   background: var(--site);
 }
+.opening .panel { animation: site-tap 200ms; }
+.opening .backdrop { animation: scrim-in 240ms cubic-bezier(0.33, 1, 0.68, 1); } /* gentler than --ease-out, so the fade reads */
+@keyframes scrim-in { from { opacity: 0; } }
 .site-enter .panel { animation: site-tap 200ms; }
 .site-enter .panel::before { animation: site-tint 850ms linear; }
 .site-enter .wave { animation: site-wave 1s linear; }
@@ -232,7 +237,7 @@ html, body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .site-enter .panel, .site-enter .wave { animation: none; }
+  .site-enter .panel, .site-enter .wave, .opening .panel { animation: none; }
 }
 .site-hint {
   flex: none;

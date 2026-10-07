@@ -24,6 +24,13 @@ watchPrefs(prefs, (changes) => {
   if (changes.enterOpens) renderFooter();
   if (changes.webSearch) rank({ keepSelection: true });
 });
+// Seek shows now that the theme is set. Over a web page it taps in while the
+// page blurs in (the page does that part, so tell it when).
+if (MODE === 'frame') {
+  document.body.classList.add('opening');
+  setTimeout(() => document.body.classList.remove('opening'), 300);
+  parent.postMessage('seek:open', '*');
+}
 
 const SCOPES = [
   { id: 'all', label: 'All' },
@@ -454,7 +461,7 @@ function setSite(site) {
   updateHint();
   rank();
 
-  document.body.classList.remove('site-enter');
+  document.body.classList.remove('site-enter', 'opening');
   if (site) siteColor(site).then((rgb) => {
     if (state.site !== site) return;
     paintSite(rgb || neutral());

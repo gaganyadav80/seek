@@ -143,7 +143,7 @@ Seek is a tool you reach for dozens of times a day, for a few seconds at a time.
 
 The bar is opaque, charcoal in dark and near-white in light, with a machined rim and layered shadow, and it looks the same in all three places Seek appears: the overlay on a web page, the toolbar dropdown, and Seek's own new tab page. Settings has a Style menu for future styles; with only this one (Solid), it is hidden.
 
-Nothing performs. The bar has no open or close animation, keyboard selection moves instantly, and the one moment of motion is the short tap and glow when a site search starts.
+Motion is brief and purposeful. Over a web page the bar opens with a short tap (the same 200ms dip to 98.8% as a site search, without the glow) while the page's dimming and 6px blur fade in over 240ms on a gentle ease-out; it closes instantly, and the toolbar dropdown and new tab don't animate. Keyboard selection moves instantly, and the other moment of motion is the tap and glow when a site search starts.
 
 **Key Characteristics:**
 - Dark by default, with a finished light theme; every text color passes WCAG AA in both.
@@ -254,10 +254,10 @@ Gently rounded and nested. The bar has 20px corners, result rows 12px, filters a
 - **Do** use blue only for matched letters (The One Blue Rule).
 - **Do** use Phosphor icons (bold), inlined or as masks.
 - **Do** check every text color for AA over the real rendered background, in both themes and all three modes.
-- **Do** keep motion to press feedback (140ms ease-out, `cubic-bezier(0.23, 1, 0.32, 1)`) and the site-search entry (tap 200ms, tint 850ms, glow 1s), and drop press scale under reduced motion.
+- **Do** keep motion to press feedback (140ms ease-out, `cubic-bezier(0.23, 1, 0.32, 1)`) the open tap over web pages (200ms, with the page's dimming and blur fading in over 240ms, `cubic-bezier(0.33, 1, 0.68, 1)`), and the site-search entry (tap 200ms, tint 850ms, glow 1s); drop the press scale and the taps under reduced motion.
 
 ### Don't:
-- **Don't** animate the bar opening or closing, or keyboard selection.
+- **Don't** animate closing, keyboard selection, the dropdown or the new tab, and don't add a glow to the open tap.
 - **Don't** restyle anything when a site search starts beyond the pill and the entry glow (The Borrowed Color Rule).
 - **Don't** put a browser's product name in any visible text, including addresses: browser pages show without their scheme (settings/privacy).
 - **Don't** use solid pure black (#000) or pure white (#fff) for a surface or text. Translucent overlays (hover, selection, hairlines) are alphas over the surface.
