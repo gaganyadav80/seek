@@ -6,8 +6,8 @@
 
 /* A real top-level page, unlike the palette iframe, so native controls and
    scrollbars can follow the theme. */
-:root[data-theme="dark"] { color-scheme: dark; }
-:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; --knob: #a1a1aa; }
+:root[data-theme="light"] { color-scheme: light; --knob: #ffffff; }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -73,7 +73,19 @@ h2 {
   min-height: 56px;
   padding: 10px 16px;
 }
+label.row { cursor: pointer; }
+.group > .row + .row { position: relative; }
+.group > .row + .row::before { /* inset divider, like macOS lists */
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 0;
+  height: 1px;
+  background: var(--line);
+}
 .row-text { flex: 1; min-width: 0; }
+.row-title, .row-sub { display: block; }
 .row-title { color: var(--ink); }
 .row-sub { font-size: 12.5px; color: var(--muted); }
 .note {
@@ -140,6 +152,60 @@ svg { width: 16px; height: 16px; fill: currentColor; flex: none; }
   cursor: pointer;
 }
 
+/* On/off switch: monochrome like the rest of Seek (no accent hue), so "on"
+   is a filled track. The knob slides. */
+.switch {
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 38px;
+  height: 22px;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--selected);
+  box-shadow: inset 0 0 0 1px var(--line);
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+.switch::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--knob);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22);
+  transition: transform 200ms var(--ease-out), background-color 150ms ease;
+}
+.switch:checked { background: var(--ink-strong); }
+.switch:checked::before { transform: translateX(16px); background: var(--surface); }
+.switch:focus-visible { outline: 2px solid var(--muted); outline-offset: 2px; }
+
+select {
+  flex: none;
+  max-width: 200px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--rim);
+  border-radius: 8px;
+  background: var(--canvas);
+  color: var(--ink);
+  font: 13px var(--font);
+  cursor: pointer;
+}
+select:focus-visible { outline: 2px solid var(--muted); outline-offset: 2px; }
+
+.section-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+.section-foot .note { margin-top: 0; }
+
 /* Keycaps */
 .keys { display: inline-flex; gap: 4px; color: var(--muted); font-size: 13px; }
 kbd {
@@ -175,10 +241,13 @@ kbd {
 .btn.secondary { background: var(--selected); color: var(--ink); }
 .btn.primary { background: var(--ink-strong); color: var(--surface); }
 .btn.danger { background: transparent; color: var(--danger); padding: 0 8px; margin-right: auto; }
+.btn.plain { background: transparent; color: var(--muted); height: 26px; padding: 0 8px; }
+.btn[data-armed] { color: var(--danger); }
 @media (hover: hover) and (pointer: fine) {
   .btn.secondary:hover { background: color-mix(in srgb, var(--ink) 14%, transparent); }
   .btn.primary:hover { background: color-mix(in srgb, var(--ink-strong) 88%, var(--surface)); }
   .btn.danger:hover { background: color-mix(in srgb, var(--danger) 12%, transparent); }
+  .btn.plain:hover { background: var(--hover); color: var(--ink); }
 }
 
 /* Site list: each row opens the editor. Rows share one grid (subgrid) so
@@ -302,6 +371,6 @@ h3 {
 .actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 4px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .seg::before { transition: none; }
+  .seg::before, .switch::before { transition: none; }
   dialog, dialog[open] { transform: none; }
 }

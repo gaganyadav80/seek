@@ -59,7 +59,13 @@ export const SITES = [
 // ---------- saved preferences (settings page and palette) ----------
 
 // ponytail: sites live in one synced item (8 KB), ~70 entries; split per site if people hit it.
-export const DEFAULT_PREFS = { theme: 'dark', sites: SITES };
+export const DEFAULT_PREFS = {
+  theme: 'dark',
+  sites: SITES,
+  sources: { tab: true, bookmark: true, history: true, setting: true }, // what the palette reads
+  enterOpens: 'new', // 'new' tab, or 'current' tab (⌘↵ does the other)
+  webSearch: '', // keyword of a site to search the web with; '' = Chrome's default engine
+};
 
 /** Saved preferences, falling back to the defaults. */
 export function loadPrefs() {
@@ -106,6 +112,19 @@ export function validateSite({ name = '', keyword = '', url = '' }, sites, editi
   else if (!/^https?:$/.test(parsed?.protocol)) errors.url = 'Enter a web address starting with https://';
   else if (!site.url.includes('%s')) errors.url = 'Put %s where the search text goes.';
   return { site, errors };
+}
+
+/**
+ * Storage update for a new site list. The web search choice follows a renamed
+ * shortcut (`renamed` maps old keyword to new) and falls back to Chrome's
+ * default if its site is gone.
+ */
+export function sitesUpdate(prefs, next, renamed = {}) {
+  const patch = { sites: next };
+  const engine = renamed[prefs.webSearch] ?? prefs.webSearch;
+  const kept = next.some((s) => s.keyword === engine) ? engine : '';
+  if (kept !== prefs.webSearch) patch.webSearch = kept;
+  return patch;
 }
 
 /** Splits a Chrome command shortcut ("⇧⌘K" on Mac, "Ctrl+Shift+K" elsewhere) into keys. */

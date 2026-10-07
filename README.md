@@ -24,7 +24,7 @@ Words are matched independently, so `gh flutter` finds `github.com/flutter/flutt
 Type a shortcut (`yt`, `gh`, `w`…) or the first letters of a site's name and press **Tab**. The site's name replaces the search icon as a pill in the site's color (picked from its favicon), results narrow to your tabs, bookmarks and history on that site, and Enter searches the site itself. Chrome doesn't let extensions read its own site search list, so manage yours in Seek settings, using the same `%s` URL format as `chrome://settings/searchEngines`.
 
 ## Settings
-Right-click the toolbar icon → **Options**, or search "Seek settings" in Seek. There you can pick a light, dark or system theme, see the shortcut (Chrome owns extension shortcuts, so **Change** opens `chrome://extensions/shortcuts`), and add, edit or delete site search entries. Settings sync through your Chrome profile.
+Right-click the toolbar icon → **Options**, or search "Seek settings" in Seek. There you can pick a light, dark or system theme, see the shortcut (Chrome owns extension shortcuts, so **Change** opens `chrome://extensions/shortcuts`), turn search sources (tabs, bookmarks, history, Chrome settings) on or off, swap what ↵ and ⌘↵ do, choose which site "Search the web" uses, and add, edit, delete or restore the default site search entries. Settings sync through your Chrome profile.
 
 ## How it works
 - On normal pages the palette is injected as an iframe overlay (an extension page, so the site can't read it or style it).

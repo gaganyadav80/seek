@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { scoreItem, siteFor } from './fuzzy.js';
-import { SITES, validateSite, shortcutKeys } from './settings.js';
+import { SITES, validateSite, shortcutKeys, sitesUpdate } from './settings.js';
 import { dominantColor, pillColors, contrast } from './color.js';
 
 const mdn = { title: 'MDN Web Docs', displayUrl: 'developer.mozilla.org' };
@@ -57,4 +57,13 @@ test('shortcuts split into keys on Mac and elsewhere', () => {
   assert.deepEqual(shortcutKeys('⇧⌘K'), ['⇧', '⌘', 'K']);
   assert.deepEqual(shortcutKeys('Ctrl+Shift+K'), ['Ctrl', 'Shift', 'K']);
   assert.deepEqual(shortcutKeys(''), []);
+});
+
+test('web search choice follows its site through renames and deletes', () => {
+  const prefs = { sites: SITES, webSearch: 'g' };
+  const renamed = SITES.map((s) => (s.keyword === 'g' ? { ...s, keyword: 'goo' } : s));
+  assert.deepEqual(sitesUpdate(prefs, renamed, { g: 'goo' }), { sites: renamed, webSearch: 'goo' });
+  const without = SITES.filter((s) => s.keyword !== 'g');
+  assert.equal(sitesUpdate(prefs, without).webSearch, '', 'deleted engine falls back to Chrome default');
+  assert.ok(!('webSearch' in sitesUpdate(prefs, SITES.slice(0, 3))), 'unrelated change leaves it alone');
 });

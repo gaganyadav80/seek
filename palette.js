@@ -11,7 +11,12 @@ const MAX_RESULTS = 60;
 
 document.documentElement.dataset.mode = MODE;
 const prefs = await loadPrefs();
-watchPrefs(prefs, (changes) => changes.sites && updateHint());
+watchPrefs(prefs, (changes) => {
+  if (changes.sites) updateHint();
+  if (changes.sources) loadSources();
+  if (changes.enterOpens) renderFooter();
+  if (changes.webSearch) rank({ keepSelection: true });
+});
 
 const SCOPES = [
   { id: 'all', label: 'All' },
@@ -20,6 +25,8 @@ const SCOPES = [
   { id: 'history', label: 'History' },
   { id: 'setting', label: 'Settings' },
 ];
+const on = (type) => prefs.sources[type] !== false; // source turned on in settings
+const visibleScopes = () => SCOPES.filter((s) => s.id === 'all' || on(s.id));
 const KIND_LABEL = { tab: 'Tab', bookmark: 'Bookmark', history: 'History', setting: 'Setting', search: 'Web', site: 'Site' };
 
 const state = {
@@ -139,6 +146,26 @@ function loadSettings() {
   });
 }
 
+// Reads only the sources turned on in settings; one that's off isn't read at all.
+function loadSources() {
+  for (const type in state.items) if (!on(type)) state.items[type] = [];
+  renderScopes();
+  if (on('setting')) loadSettings();
+  // Tabs first so the list appears instantly; bookmarks and history fill in after.
+  (on('tab') ? loadTabs() : Promise.resolve()).then(() => rank());
+  Promise.all([on('bookmark') && loadBookmarks(), on('history') && loadHistory()])
+    .catch((err) => console.error('Seek:', err))
+    .then(() => rank({ keepSelection: true }));
+}
+
+// "Search the web" row: Chrome's default engine, or the site picked in settings.
+function webSearchItem(text) {
+  const engine = prefs.sites.find((s) => s.keyword === prefs.webSearch);
+  if (!engine) return { type: 'search', key: 'search', title: `Search the web for “${text}”`, displayUrl: '' };
+  const url = engine.url.replace('%s', encodeURIComponent(text));
+  return { type: 'search', key: 'search', title: `Search ${engine.name} for “${text}”`, url, displayUrl: '' };
+}
+
 // ---------- ranking ----------
 
 function boost(item, now) {
@@ -220,7 +247,7 @@ function rank({ keepSelection = false } = {}) {
         results.push(r);
         if (results.length >= MAX_RESULTS) break;
       }
-      if (!site) results.push({ item: { type: 'search', key: 'search', title: `Search the web for “${raw}”`, displayUrl: '' }, hl: null });
+      if (!site) results.push({ item: webSearchItem(raw), hl: null });
     } else {
       results = scored.slice(0, MAX_RESULTS);
     }
@@ -246,7 +273,7 @@ const SEARCH_SVG =
 
 function iconFor(item) {
   if (item.type === 'setting') return svgEl(GEAR_SVG);
-  if (item.type === 'search') return svgEl(SEARCH_SVG);
+  if (item.type === 'search' && !item.url) return svgEl(SEARCH_SVG);
   const img = document.createElement('img');
   img.className = 'icon';
   img.alt = '';
@@ -349,8 +376,9 @@ function setSelected(i) {
 }
 
 function renderScopes() {
+  if (!on(state.scope)) state.scope = 'all'; // its source was turned off
   $scopes.replaceChildren(
-    ...SCOPES.map((s) => {
+    ...visibleScopes().map((s) => {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'scope';
@@ -436,10 +464,11 @@ function setSite(site) {
 
 function renderFooter() {
   const mod = IS_MAC ? '⌘' : 'Ctrl';
+  const swap = prefs.enterOpens === 'current';
   const hints = [
     [['↑', '↓'], 'Move'],
-    [['↵'], 'Open'],
-    [[mod, '↵'], 'Open here'],
+    [['↵'], swap ? 'Open here' : 'Open'],
+    [[mod, '↵'], swap ? 'New tab' : 'Open here'],
     [['Tab'], 'Filter'],
     [['Esc'], 'Close'],
   ];
@@ -462,6 +491,7 @@ function renderFooter() {
 async function activate(index, { here = false } = {}) {
   const r = state.results[index];
   if (!r) return;
+  here = here !== (prefs.enterOpens === 'current'); // the setting swaps ↵ and ⌘↵
   const item = r.item;
   const origin = state.originTab;
 
@@ -469,7 +499,7 @@ async function activate(index, { here = false } = {}) {
     if (item.type === 'tab') {
       await chrome.tabs.update(item.tabId, { active: true });
       await chrome.windows.update(item.windowId, { focused: true });
-    } else if (item.type === 'search') {
+    } else if (item.type === 'search' && !item.url) {
       const text = state.query.trim();
       if (here && origin) await chrome.search.query({ text, tabId: origin.id });
       else await chrome.search.query({ text, disposition: 'NEW_TAB' });
@@ -524,9 +554,10 @@ window.addEventListener('keydown', (e) => {
     e.preventDefault();
     if (state.hint && !e.shiftKey) return setSite(state.hint);
     if (state.site) return;
-    const i = SCOPES.findIndex((s) => s.id === state.scope);
-    const next = (i + (e.shiftKey ? -1 : 1) + SCOPES.length) % SCOPES.length;
-    setScope(SCOPES[next].id);
+    const scopes = visibleScopes();
+    const i = scopes.findIndex((s) => s.id === state.scope);
+    const next = (i + (e.shiftKey ? -1 : 1) + scopes.length) % scopes.length;
+    setScope(scopes[next].id);
   }
 });
 
@@ -545,15 +576,8 @@ window.addEventListener('focus', () => $q.focus());
 
 // ---------- start ----------
 
-renderScopes();
 renderFooter();
-loadSettings();
 $q.focus();
 
 if (ORIGIN_TAB_ID) chrome.tabs.get(ORIGIN_TAB_ID).then((t) => (state.originTab = t)).catch(() => {});
-
-// Tabs first so the list appears instantly; bookmarks and history fill in after.
-loadTabs().then(() => rank());
-Promise.all([loadBookmarks(), loadHistory()])
-  .catch((err) => console.error('Seek:', err))
-  .then(() => rank({ keepSelection: true }));
+loadSources();

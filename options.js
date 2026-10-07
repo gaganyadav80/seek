@@ -1,4 +1,4 @@
-import { loadPrefs, watchPrefs, validateSite, shortcutKeys, faviconUrl } from './settings.js';
+import { SITES, loadPrefs, watchPrefs, validateSite, sitesUpdate, shortcutKeys, faviconUrl } from './settings.js';
 
 const $ = (id) => document.getElementById(id);
 const prefs = await loadPrefs();
@@ -11,13 +11,38 @@ for (const radio of radios) radio.checked = radio.value === prefs.theme;
 // so the switch's thumb doesn't slide into place on load.
 getComputedStyle(document.querySelector('.seg'), '::before').transform;
 watchPrefs(prefs, (changes) => {
-  if (changes.theme) for (const radio of radios) radio.checked = radio.value === prefs.theme;
+  renderControls();
   if (changes.sites) renderSites();
 });
 
 for (const radio of radios) {
   radio.addEventListener('change', () => chrome.storage.sync.set({ theme: radio.value }));
 }
+
+// ---------- search sources and opening results ----------
+
+const switches = document.querySelectorAll('[data-source]');
+
+// Shows the saved settings; also runs when they change in another tab or device.
+function renderControls() {
+  for (const radio of radios) radio.checked = radio.value === prefs.theme;
+  for (const box of switches) box.checked = prefs.sources[box.dataset.source] !== false;
+  $('enter-opens').value = prefs.enterOpens;
+  $('web-search').replaceChildren(
+    new Option("Chrome's default", ''),
+    ...prefs.sites.map((s) => new Option(s.name, s.keyword))
+  );
+  $('web-search').value = prefs.sites.some((s) => s.keyword === prefs.webSearch) ? prefs.webSearch : '';
+  $('restore-sites').hidden = JSON.stringify(prefs.sites) === JSON.stringify(SITES);
+}
+
+for (const box of switches) {
+  box.addEventListener('change', () => {
+    chrome.storage.sync.set({ sources: { ...prefs.sources, [box.dataset.source]: box.checked } });
+  });
+}
+$('enter-opens').addEventListener('change', (e) => chrome.storage.sync.set({ enterOpens: e.target.value }));
+$('web-search').addEventListener('change', (e) => chrome.storage.sync.set({ webSearch: e.target.value }));
 
 // ---------- keyboard shortcut ----------
 
@@ -44,7 +69,6 @@ renderShortcut();
 const FIELDS = ['name', 'keyword', 'url'];
 const $dialog = $('editor');
 const $form = $('site-form');
-const $delete = $('delete-site');
 let editing = -1; // index being edited, -1 when adding
 
 function renderSites() {
@@ -73,6 +97,29 @@ function showError(field, message) {
   $form.elements[field].setAttribute('aria-invalid', String(!!message));
 }
 
+// Destructive buttons ask for a second click instead of a confirm dialog.
+function twoStep(button, confirmLabel, action) {
+  const label = button.textContent;
+  let timer;
+  const disarm = () => {
+    clearTimeout(timer);
+    delete button.dataset.armed;
+    button.textContent = label;
+  };
+  button.addEventListener('click', () => {
+    if ('armed' in button.dataset) return disarm(), action();
+    button.dataset.armed = '';
+    button.textContent = confirmLabel;
+    timer = setTimeout(disarm, 3000);
+  });
+  return disarm;
+}
+
+const disarmDelete = twoStep($('delete-site'), 'Click again to delete', async () => {
+  if (await save(sitesUpdate(prefs, prefs.sites.filter((_, i) => i !== editing)))) $dialog.close();
+});
+twoStep($('restore-sites'), 'Click again to restore', () => save(sitesUpdate(prefs, SITES)));
+
 function openEditor(i) {
   editing = i;
   const site = prefs.sites[i] || { name: '', keyword: '', url: '' };
@@ -82,20 +129,22 @@ function openEditor(i) {
     showError(f, '');
   }
   $('e-form').textContent = '';
-  $delete.hidden = i < 0;
+  $('delete-site').hidden = i < 0;
   disarmDelete();
   $dialog.showModal();
 }
 
-async function save(next) {
+/** Saves a change to the site list (and the web search choice that follows it). */
+async function save(patch) {
   try {
-    await chrome.storage.sync.set({ sites: next });
+    await chrome.storage.sync.set(patch);
   } catch (err) {
     $('e-form').textContent = `Couldn't save: ${err.message}`;
     return false;
   }
-  prefs.sites = next;
+  Object.assign(prefs, patch);
   renderSites();
+  renderControls();
   return true;
 }
 
@@ -105,28 +154,13 @@ $form.addEventListener('submit', async (e) => {
   for (const f of FIELDS) showError(f, errors[f] || '');
   const invalid = FIELDS.find((f) => errors[f]);
   if (invalid) return $form.elements[invalid].focus();
-  if (await save(editing < 0 ? [...prefs.sites, site] : prefs.sites.with(editing, site))) $dialog.close();
+  const next = editing < 0 ? [...prefs.sites, site] : prefs.sites.with(editing, site);
+  const renamed = editing < 0 ? {} : { [prefs.sites[editing].keyword]: site.keyword };
+  if (await save(sitesUpdate(prefs, next, renamed))) $dialog.close();
 });
 $form.addEventListener('input', (e) => showError(e.target.name, ''));
-
-// Delete asks for a second click instead of a confirm dialog on top of this one.
-let armTimer;
-function disarmDelete() {
-  clearTimeout(armTimer);
-  delete $delete.dataset.armed;
-  $delete.textContent = 'Delete';
-}
-$delete.addEventListener('click', async () => {
-  if (!('armed' in $delete.dataset)) {
-    $delete.dataset.armed = '';
-    $delete.textContent = 'Click again to delete';
-    armTimer = setTimeout(disarmDelete, 3000);
-    return;
-  }
-  disarmDelete();
-  if (await save(prefs.sites.filter((_, i) => i !== editing))) $dialog.close();
-});
 
 $('cancel').addEventListener('click', () => $dialog.close());
 $('add-site').addEventListener('click', () => openEditor(-1));
 renderSites();
+renderControls();

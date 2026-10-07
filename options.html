@@ -57,6 +57,61 @@
       <p class="note">Chrome manages extension shortcuts, so Change opens its shortcuts page.</p>
     </section>
 
+    <section aria-labelledby="sources-h">
+      <h2 id="sources-h">Search in</h2>
+      <div class="group">
+        <label class="row">
+          <span class="row-text">
+            <span class="row-title">Open tabs</span>
+          </span>
+          <input type="checkbox" role="switch" class="switch" data-source="tab">
+        </label>
+        <label class="row">
+          <span class="row-text">
+            <span class="row-title">Bookmarks</span>
+          </span>
+          <input type="checkbox" role="switch" class="switch" data-source="bookmark">
+        </label>
+        <label class="row">
+          <span class="row-text">
+            <span class="row-title">History</span>
+          </span>
+          <input type="checkbox" role="switch" class="switch" data-source="history">
+        </label>
+        <label class="row">
+          <span class="row-text">
+            <span class="row-title">Chrome settings pages</span>
+            <span class="row-sub">Includes Seek settings.</span>
+          </span>
+          <input type="checkbox" role="switch" class="switch" data-source="setting">
+        </label>
+      </div>
+      <p class="note">Seek doesn't read a source that's turned off.</p>
+    </section>
+
+    <section aria-labelledby="results-h">
+      <h2 id="results-h">Opening results</h2>
+      <div class="group">
+        <div class="row">
+          <label class="row-text" for="enter-opens">
+            <span class="row-title">Enter opens results in</span>
+            <span class="row-sub">⌘↵ does the other. Enter on an open tab always switches to it.</span>
+          </label>
+          <select id="enter-opens">
+            <option value="new">New tab</option>
+            <option value="current">Current tab</option>
+          </select>
+        </div>
+        <div class="row">
+          <label class="row-text" for="web-search">
+            <span class="row-title">Search the web with</span>
+            <span class="row-sub">Pick a site from your site search list.</span>
+          </label>
+          <select id="web-search"></select>
+        </div>
+      </div>
+    </section>
+
     <section aria-labelledby="sites-h">
       <div class="section-head">
         <h2 id="sites-h">Site search</h2>
@@ -66,7 +121,10 @@
         </button>
       </div>
       <ul class="group" id="sites"></ul>
-      <p class="note">In Seek, type a shortcut and press Tab to search that site.</p>
+      <div class="section-foot">
+        <p class="note">In Seek, type a shortcut and press Tab to search that site.</p>
+        <button type="button" class="btn plain" id="restore-sites">Restore defaults</button>
+      </div>
     </section>
   </main>
 
