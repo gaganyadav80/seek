@@ -1,4 +1,5 @@
 import { scoreItem, siteFor } from './fuzzy.js';
+import { dominantColor, pillColors } from './color.js';
 import { CHROME_PAGES, SITES } from './settings.js';
 
 const params = new URLSearchParams(location.search);
@@ -366,10 +367,45 @@ function setScope(id) {
   $q.focus();
 }
 
+// Site color from its favicon (same-origin, so the canvas stays readable),
+// computed when the Tab hint appears so it's ready when Tab is pressed.
+const siteColors = new Map();
+function siteColor(site) {
+  if (!siteColors.has(site.url)) {
+    siteColors.set(site.url, new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const ctx = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+          ctx.canvas.width = ctx.canvas.height = 32;
+          ctx.drawImage(img, 0, 0, 32, 32);
+          resolve(dominantColor(ctx.getImageData(0, 0, 32, 32).data));
+        } catch {
+          resolve(null);
+        }
+      };
+      img.onerror = () => resolve(null);
+      img.src = faviconUrl(new URL(site.url).origin);
+    }));
+  }
+  return siteColors.get(site.url);
+}
+
+const NEUTRAL = [228, 228, 231]; // black-and-white icons get a light pill
+
+function paintSite(rgb) {
+  const { bg, lightText } = pillColors(rgb);
+  const s = document.documentElement.style;
+  s.setProperty('--site', `rgb(${rgb})`);
+  s.setProperty('--site-pill', `rgb(${bg})`);
+  s.setProperty('--site-ink', lightText ? 'var(--ink-strong)' : 'var(--surface)');
+}
+
 function updateHint() {
   state.hint = state.site ? null : siteFor(state.query, SITES);
   $hint.hidden = !state.hint;
   if (!state.hint) return;
+  siteColor(state.hint);
   const kbd = document.createElement('kbd');
   kbd.textContent = 'Tab';
   $hint.replaceChildren(kbd, `to search ${state.hint.name}`);
@@ -384,6 +420,14 @@ function setSite(site) {
   $q.value = state.query = '';
   updateHint();
   rank();
+
+  document.body.classList.remove('site-enter');
+  if (site) siteColor(site).then((rgb) => {
+    if (state.site !== site) return;
+    paintSite(rgb || NEUTRAL);
+    void document.body.offsetWidth; // restart the entry animation
+    document.body.classList.add('site-enter');
+  });
 }
 
 function renderFooter() {
