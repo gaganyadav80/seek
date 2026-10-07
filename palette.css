@@ -161,7 +161,7 @@ img.icon { border-radius: 3px; }
 }
 .title { font-size: 14px; }
 .url { font-size: 12px; color: var(--muted); margin-top: 1px; }
-.title mark {
+.title mark, .url mark {
   background: none;
   color: var(--ink-strong);
   font-weight: 600;

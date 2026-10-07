@@ -185,7 +185,7 @@ function rank({ keepSelection = false } = {}) {
     for (const type of pools) {
       for (const item of state.items[type]) {
         const m = scoreItem(tokens, item);
-        if (m) scored.push({ item, hl: m.titlePositions, score: m.score + boost(item, now) });
+        if (m) scored.push({ item, hl: m.titlePositions, urlHl: m.urlPositions, score: m.score + boost(item, now) });
       }
     }
     scored.sort((a, b) => b.score - a.score);
@@ -237,9 +237,9 @@ function svgEl(markup) {
   return t.content.firstElementChild;
 }
 
-function highlighted(text, positions) {
+function highlighted(text, positions, className) {
   const el = document.createElement('div');
-  el.className = 'title';
+  el.className = className;
   if (!positions || !positions.size) {
     el.textContent = text;
     return el;
@@ -277,12 +277,9 @@ function renderRow(r, i) {
 
   const text = document.createElement('div');
   text.className = 'text';
-  text.append(highlighted(r.item.title, r.hl));
+  text.append(highlighted(r.item.title, r.hl, 'title'));
   if (r.item.displayUrl) {
-    const url = document.createElement('div');
-    url.className = 'url';
-    url.textContent = r.item.displayUrl;
-    text.append(url);
+    text.append(highlighted(r.item.displayUrl, r.urlHl, 'url'));
   }
 
   const kind = document.createElement('span');

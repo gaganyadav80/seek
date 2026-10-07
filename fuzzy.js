@@ -71,21 +71,27 @@ export function matchToken(token, text) {
 
 /**
  * Every whitespace-separated token must match the title, URL or keywords.
- * Returns { score, titlePositions } or null.
+ * Returns { score, titlePositions, urlPositions } or null.
  */
 export function scoreItem(tokens, item) {
   let total = 0;
   const titlePositions = new Set();
+  const urlPositions = new Set();
 
   for (const token of tokens) {
     const t = matchToken(token, item.title);
     const u = matchToken(token, item.displayUrl);
     const k = item.keywords ? matchToken(token, item.keywords) : null;
 
-    const best = Math.max(t ? t.score * 1.4 : -1, u ? u.score : -1, k ? k.score * 0.9 : -1);
+    const ts = t ? t.score * 1.4 : -1;
+    const us = u ? u.score : -1;
+    const best = Math.max(ts, us, k ? k.score * 0.9 : -1);
     if (best < 0) return null;
     total += best;
-    if (t) t.positions.forEach((p) => titlePositions.add(p));
+    // Highlight the token in whichever visible line it matched better.
+    // Keyword-only matches (bookmark folders, setting aliases) aren't shown.
+    if (t && ts >= us) t.positions.forEach((p) => titlePositions.add(p));
+    else if (u) u.positions.forEach((p) => urlPositions.add(p));
   }
-  return { score: total, titlePositions };
+  return { score: total, titlePositions, urlPositions };
 }
