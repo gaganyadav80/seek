@@ -1,15 +1,17 @@
 import { scoreItem, siteFor } from './fuzzy.js';
 import { dominantColor, pillColors } from './color.js';
-import { CHROME_PAGES, loadPrefs, watchPrefs, faviconUrl } from './settings.js';
+import { CHROME_PAGES, loadPrefs, watchPrefs, faviconUrl, isNewTab } from './settings.js';
 
 const params = new URLSearchParams(location.search);
-const MODE = params.get('mode') === 'popup' ? 'popup' : 'frame';
+// frame: overlay on a page; popup: toolbar dropdown; page: Seek as a whole new tab
+const MODE = ['popup', 'page'].includes(params.get('mode')) ? params.get('mode') : 'frame';
 const ORIGIN_TAB_ID = Number(params.get('tab')) || null;
 const IS_MAC = /mac/i.test(navigator.userAgentData?.platform || navigator.platform);
 const SELF_PREFIX = chrome.runtime.getURL('');
 const MAX_RESULTS = 60;
 
 document.documentElement.dataset.mode = MODE;
+if (MODE === 'page') document.title = 'New Tab';
 const prefs = await loadPrefs();
 watchPrefs(prefs, (changes) => {
   if (changes.sites) updateHint();
@@ -67,8 +69,13 @@ function normalizeUrl(url) {
 
 function close() {
   if (MODE === 'popup') window.close();
+  else if (MODE === 'page') chrome.tabs.getCurrent().then((t) => t && chrome.tabs.remove(t.id));
   else parent.postMessage('seek:close', '*');
 }
+
+// Seek opened on an empty new tab (or is Seek's own new tab page): results fill
+// that tab instead of leaving a blank one behind.
+const onNewTab = () => MODE === 'page' || isNewTab(state.originTab?.url || state.originTab?.pendingUrl);
 
 // ---------- data sources ----------
 
@@ -467,11 +474,12 @@ function setSite(site) {
 
 function renderFooter() {
   const mod = IS_MAC ? '⌘' : 'Ctrl';
-  const swap = prefs.enterOpens === 'current';
+  const fill = onNewTab();
+  const swap = !fill && prefs.enterOpens === 'current';
   const hints = [
     [['↑', '↓'], 'Move'],
     [['↵'], swap ? 'Open here' : 'Open'],
-    [[mod, '↵'], swap ? 'New tab' : 'Open here'],
+    [[mod, '↵'], fill || swap ? 'New tab' : 'Open here'],
     [['Tab'], 'Filter'],
     [['Esc'], 'Close'],
   ];
@@ -494,7 +502,9 @@ function renderFooter() {
 async function activate(index, { here = false } = {}) {
   const r = state.results[index];
   if (!r) return;
-  here = here !== (prefs.enterOpens === 'current'); // the setting swaps ↵ and ⌘↵
+  const fill = onNewTab();
+  // ↵ fills an empty new tab (⌘↵ opens another); elsewhere the setting can swap ↵ and ⌘↵.
+  here = fill ? !here : here !== (prefs.enterOpens === 'current');
   const item = r.item;
   const origin = state.originTab;
 
@@ -502,6 +512,7 @@ async function activate(index, { here = false } = {}) {
     if (item.type === 'tab') {
       await chrome.tabs.update(item.tabId, { active: true });
       await chrome.windows.update(item.windowId, { focused: true });
+      if (fill && origin && MODE !== 'page') await chrome.tabs.remove(origin.id); // close() handles 'page'
     } else if (item.type === 'search' && !item.url) {
       const text = state.query.trim();
       if (here && origin) await chrome.search.query({ text, tabId: origin.id });
@@ -518,6 +529,7 @@ async function activate(index, { here = false } = {}) {
   } catch (err) {
     console.error('Seek:', err);
   }
+  if (MODE === 'page' && here && item.type !== 'tab') return; // this tab is going to the result
   close();
 }
 
@@ -582,5 +594,11 @@ window.addEventListener('focus', () => $q.focus());
 renderFooter();
 $q.focus();
 
-if (ORIGIN_TAB_ID) chrome.tabs.get(ORIGIN_TAB_ID).then((t) => (state.originTab = t)).catch(() => {});
+// The tab Seek acts on: the page it was opened over, or its own tab in 'page' mode.
+(MODE === 'page' ? chrome.tabs.getCurrent() : ORIGIN_TAB_ID ? chrome.tabs.get(ORIGIN_TAB_ID) : Promise.resolve())
+  .then((t) => {
+    state.originTab = t;
+    renderFooter(); // hints depend on whether that's an empty new tab
+  })
+  .catch(() => {});
 loadSources();

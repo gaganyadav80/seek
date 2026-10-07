@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { scoreItem, siteFor } from './fuzzy.js';
-import { SITES, validateSite, shortcutKeys, sitesUpdate } from './settings.js';
+import { SITES, validateSite, shortcutKeys, sitesUpdate, isNewTab } from './settings.js';
 import { dominantColor, pillColors, contrast } from './color.js';
 
 const mdn = { title: 'MDN Web Docs', displayUrl: 'developer.mozilla.org' };
@@ -66,4 +66,11 @@ test('web search choice follows its site through renames and deletes', () => {
   const without = SITES.filter((s) => s.keyword !== 'g');
   assert.equal(sitesUpdate(prefs, without).webSearch, '', 'deleted engine falls back to Chrome default');
   assert.ok(!('webSearch' in sitesUpdate(prefs, SITES.slice(0, 3))), 'unrelated change leaves it alone');
+});
+
+test('new tab pages are recognised across browsers, other pages are not', () => {
+  for (const url of ['chrome://newtab/', 'brave://newtab', 'edge://newtab/', 'chrome://new-tab-page/']) assert.ok(isNewTab(url), url);
+  for (const url of ['chrome://settings', 'https://newtab.example.com/', 'chrome-extension://x/palette.html?mode=page', '', undefined]) {
+    assert.ok(!isNewTab(url), String(url));
+  }
 });

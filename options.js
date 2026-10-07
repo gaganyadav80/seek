@@ -28,6 +28,7 @@ function renderControls() {
   for (const radio of radios) radio.checked = radio.value === prefs.theme;
   for (const box of switches) box.checked = prefs.sources[box.dataset.source] !== false;
   $('enter-opens').value = prefs.enterOpens;
+  $('new-tab').value = prefs.newTab;
   $('web-search').replaceChildren(
     new Option('Browser default', ''),
     ...prefs.sites.map((s) => new Option(s.name, s.keyword))
@@ -42,6 +43,7 @@ for (const box of switches) {
   });
 }
 $('enter-opens').addEventListener('change', (e) => chrome.storage.sync.set({ enterOpens: e.target.value }));
+$('new-tab').addEventListener('change', (e) => chrome.storage.sync.set({ newTab: e.target.value }));
 $('web-search').addEventListener('change', (e) => chrome.storage.sync.set({ webSearch: e.target.value }));
 
 // ---------- keyboard shortcut ----------

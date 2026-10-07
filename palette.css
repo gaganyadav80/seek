@@ -49,6 +49,10 @@ html, body {
 [data-mode="popup"], [data-mode="popup"] body { width: 680px; height: 460px; background: var(--surface); }
 [data-mode="popup"] .backdrop,
 [data-mode="popup"] .wave { display: none; }
+
+/* Seek as a new tab: the panel centered on the page background. */
+[data-mode="page"] body { background: var(--canvas); }
+[data-mode="page"] .backdrop { display: none; }
 [data-mode="popup"] .panel {
   width: 100%;
   height: 100%;

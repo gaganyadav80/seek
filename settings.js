@@ -64,8 +64,14 @@ export const DEFAULT_PREFS = {
   sites: SITES,
   sources: { tab: true, bookmark: true, history: true, setting: true }, // what the palette reads
   enterOpens: 'new', // 'new' tab, or 'current' tab (⌘↵ does the other)
-  webSearch: '', // keyword of a site to search the web with; '' = Chrome's default engine
+  webSearch: '', // keyword of a site to search the web with; '' = the browser's default engine
+  newTab: 'off', // on a new tab: 'off', 'popup' (open Seek on it) or 'page' (swap it for Seek's page)
 };
+
+/** True for the browser's own new tab page (chrome://newtab, brave://newtab, edge://newtab…). */
+export function isNewTab(url) {
+  return /^(?!https?:)[a-z-]+:\/\/(newtab|new-tab-page)(\/|$)/.test(url || '');
+}
 
 /** Saved preferences, falling back to the defaults. */
 export function loadPrefs() {

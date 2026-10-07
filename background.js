@@ -1,7 +1,9 @@
 // Seek — background service worker.
-// Opens the palette as an overlay iframe on normal pages. On pages Chrome
-// won't let extensions touch (chrome://, the Web Store, the New Tab page…)
-// it opens as the toolbar popup instead, which stays inside the same window.
+// Opens the palette as an overlay iframe on normal pages. On pages the browser
+// won't let extensions touch (its own pages, the extension store, the new tab
+// page) it opens as the toolbar popup instead, which stays inside the same window.
+
+import { DEFAULT_PREFS, isNewTab } from './settings.js';
 
 chrome.commands.onCommand.addListener((command, tab) => {
   if (command === 'open-palette') openPalette(tab);
@@ -20,13 +22,34 @@ async function openPalette(tab) {
       args: [chrome.runtime.getURL(`palette.html?mode=frame&tab=${tab.id}`)],
     });
   } catch {
-    // Restricted page. The popup is set only long enough to open it, so
-    // clicking the toolbar icon keeps going through onClicked.
-    await chrome.action.setPopup({ tabId: tab.id, popup: `palette.html?mode=popup&tab=${tab.id}` });
-    await chrome.action.openPopup({ windowId: tab.windowId }).catch((err) => console.error('Seek:', err));
-    await chrome.action.setPopup({ tabId: tab.id, popup: '' });
+    await openPopup(tab); // restricted page
   }
 }
+
+// The popup is set only long enough to open it, so clicking the toolbar icon
+// keeps going through onClicked.
+async function openPopup(tab) {
+  await chrome.action.setPopup({ tabId: tab.id, popup: `palette.html?mode=popup&tab=${tab.id}` });
+  await chrome.action.openPopup({ windowId: tab.windowId }).catch((err) => console.error('Seek:', err));
+  await chrome.action.setPopup({ tabId: tab.id, popup: '' });
+}
+
+// "When you open a new tab" setting. Browsers give a new tab's focus to the
+// address bar and don't let an override be switched off, so instead of
+// replacing the page in the manifest Seek reacts to new tabs here:
+// 'popup' opens Seek on the browser's own new tab page; 'page' swaps the tab
+// for Seek's page in a fresh tab, which (unlike a new tab page) gets focus.
+chrome.tabs.onCreated.addListener(async (tab) => {
+  if (!isNewTab(tab.pendingUrl || tab.url)) return;
+  const { newTab } = await chrome.storage.sync.get({ newTab: DEFAULT_PREFS.newTab });
+  if (newTab === 'popup') {
+    openPopup(tab);
+  } else if (newTab === 'page') {
+    const url = chrome.runtime.getURL('palette.html?mode=page');
+    await chrome.tabs.create({ url, index: tab.index, windowId: tab.windowId });
+    chrome.tabs.remove(tab.id);
+  }
+});
 
 // Runs inside the web page (isolated world). Must be self-contained.
 function togglePaletteFrame(src) {
