@@ -41,6 +41,22 @@
             </label>
           </div>
         </div>
+        <div class="row">
+          <label class="row-text" for="style">
+            <span class="row-title">Style</span>
+            <span class="row-sub">How Seek looks everywhere it opens.</span>
+          </label>
+          <select id="style">
+            <option value="evolved">Solid</option>
+            <option value="fluid">Glass</option>
+          </select>
+        </div>
+        <div class="row preview-row">
+          <!-- Seek's real new tab page (your tabs and history), not interactive. -->
+          <div class="preview" id="preview" role="img" aria-label="Preview of Seek's new tab in this style">
+            <iframe src="palette.html?mode=page&amp;preview" tabindex="-1" inert></iframe>
+          </div>
+        </div>
       </div>
     </section>
 

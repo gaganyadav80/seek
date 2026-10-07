@@ -6,6 +6,8 @@ const params = new URLSearchParams(location.search);
 // frame: overlay on a page; popup: toolbar dropdown; page: Seek as a whole new tab
 const MODE = ['popup', 'page'].includes(params.get('mode')) ? params.get('mode') : 'frame';
 const ORIGIN_TAB_ID = Number(params.get('tab')) || null;
+// Settings shows Seek as a live preview; it must not take focus from the settings page.
+const PREVIEW = params.has('preview');
 const IS_MAC = /mac/i.test(navigator.userAgentData?.platform || navigator.platform);
 const SELF_PREFIX = chrome.runtime.getURL('');
 const MAX_RESULTS = 60;
@@ -279,14 +281,10 @@ function rank({ keepSelection = false } = {}) {
 
 // ---------- rendering ----------
 
-const GEAR_SVG =
-  '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm7.4 5.1 1.6 1.2-1.8 3.1-1.9-.7a7.5 7.5 0 0 1-2 1.1l-.3 2h-3.6l-.3-2a7.5 7.5 0 0 1-2-1.1l-1.9.7L3 14.8l1.6-1.2a7.6 7.6 0 0 1 0-2.3L3 10.1 4.8 7l1.9.7a7.5 7.5 0 0 1 2-1.1l.3-2h3.6l.3 2a7.5 7.5 0 0 1 2 1.1l1.9-.7 1.8 3.1-1.6 1.2a7.6 7.6 0 0 1 0 2.3Z"/></svg>';
-const SEARCH_SVG =
-  '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
-
+// Phosphor glyphs drawn by palette.css (each style picks its weight).
 function iconFor(item) {
-  if (item.type === 'setting') return svgEl(GEAR_SVG);
-  if (item.type === 'search' && !item.url) return svgEl(SEARCH_SVG);
+  if (item.type === 'setting') return glyph('gear');
+  if (item.type === 'search' && !item.url) return glyph('search');
   const img = document.createElement('img');
   img.className = 'icon';
   img.alt = '';
@@ -295,10 +293,10 @@ function iconFor(item) {
   return img;
 }
 
-function svgEl(markup) {
-  const t = document.createElement('template');
-  t.innerHTML = markup; // static markup only, never page data
-  return t.content.firstElementChild;
+function glyph(name) {
+  const el = document.createElement('span');
+  el.className = 'icon glyph ' + name;
+  return el;
 }
 
 function highlighted(text, positions, className) {
@@ -590,12 +588,12 @@ $results.addEventListener('click', (e) => {
 $results.addEventListener('mousedown', (e) => e.preventDefault()); // keep focus in the input
 
 document.getElementById('backdrop').addEventListener('mousedown', close);
-window.addEventListener('focus', () => $q.focus());
+if (!PREVIEW) window.addEventListener('focus', () => $q.focus());
 
 // ---------- start ----------
 
 renderFooter();
-$q.focus();
+if (!PREVIEW) $q.focus();
 
 // The tab Seek acts on: the page it was opened over, or its own tab in 'page' mode.
 (MODE === 'page' ? chrome.tabs.getCurrent() : ORIGIN_TAB_ID ? chrome.tabs.get(ORIGIN_TAB_ID) : Promise.resolve())

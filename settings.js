@@ -66,6 +66,7 @@ export const DEFAULT_PREFS = {
   enterOpens: 'new', // 'new' tab, or 'current' tab (⌘↵ does the other)
   webSearch: '', // keyword of a site to search the web with; '' = the browser's default engine
   newTab: 'off', // on a new tab: 'off', 'popup' (open Seek on it) or 'page' (swap it for Seek's page)
+  style: 'evolved', // how Seek looks: 'evolved' (solid) or 'fluid' (glass); palette.css has both
 };
 
 /** True for the browser's own new tab page (chrome://newtab, brave://newtab, edge://newtab…). */
@@ -85,12 +86,15 @@ export function applyTheme(mode) {
 }
 
 /**
- * Applies the theme, then keeps `prefs` and the theme current while the page
+ * Applies the theme and style, then keeps `prefs` and both current while the page
  * is open: saved changes (from the settings page or another device) and OS
  * light/dark switches. `onChange(changes)` runs after a saved change.
  */
 export function watchPrefs(prefs, onChange = () => {}) {
-  const apply = () => applyTheme(prefs.theme);
+  const apply = () => {
+    applyTheme(prefs.theme);
+    document.documentElement.dataset.style = prefs.style;
+  };
   apply();
   matchMedia('(prefers-color-scheme: light)').addEventListener('change', apply);
   chrome.storage.sync.onChanged.addListener((changes) => {

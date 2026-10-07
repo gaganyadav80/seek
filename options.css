@@ -2,7 +2,7 @@
 
 /* Seek settings: a grouped list in the spirit of macOS System Settings, on the
    palette's tokens. Radii: groups 12px, buttons and inputs 8px, keycaps 5px,
-   the theme switch fully rounded, the dialog matches the palette (14px). */
+   the theme switch fully rounded, the dialog matches the palette (20px). */
 
 /* A real top-level page, unlike the palette iframe, so native controls and
    scrollbars can follow the theme. */
@@ -152,6 +152,29 @@ svg { width: 16px; height: 16px; fill: currentColor; flex: none; }
   margin: 0;
   opacity: 0;
   cursor: pointer;
+}
+
+/* Style preview: Seek's new tab at 1280×800, scaled to the row (options.js). */
+.group > .preview-row { padding: 0 16px 16px; }
+.group > .preview-row::before { display: none; }
+.preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--canvas);
+  box-shadow: 0 0 0 1px var(--line);
+}
+.preview iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1280px;
+  height: 800px;
+  border: 0;
+  transform: scale(var(--scale, 0.46));
+  transform-origin: 0 0;
 }
 
 /* On/off switch: monochrome like the rest of Seek (no accent hue), so "on"

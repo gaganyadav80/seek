@@ -29,6 +29,7 @@ function renderControls() {
   for (const box of switches) box.checked = prefs.sources[box.dataset.source] !== false;
   $('enter-opens').value = prefs.enterOpens;
   $('new-tab').value = prefs.newTab;
+  $('style').value = prefs.style;
   $('web-search').replaceChildren(
     new Option('Browser default', ''),
     ...prefs.sites.map((s) => new Option(s.name, s.keyword))
@@ -45,6 +46,19 @@ for (const box of switches) {
 $('enter-opens').addEventListener('change', (e) => chrome.storage.sync.set({ enterOpens: e.target.value }));
 $('new-tab').addEventListener('change', (e) => chrome.storage.sync.set({ newTab: e.target.value }));
 $('web-search').addEventListener('change', (e) => chrome.storage.sync.set({ webSearch: e.target.value }));
+$('style').addEventListener('change', (e) => {
+  chrome.storage.sync.set({ style: e.target.value });
+  // Soften the swap: the preview restyles itself a moment later, under a brief blur.
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  $('preview').animate([{ opacity: 0.6, filter: reduce ? 'none' : 'blur(3px)' }, { opacity: 1, filter: 'none' }],
+    { duration: 220, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+});
+
+// The preview is a 1280×800 new tab scaled down to the row's width. It follows
+// the saved theme and style by itself, like any open Seek page.
+new ResizeObserver(([entry]) => {
+  $('preview').style.setProperty('--scale', entry.contentRect.width / 1280);
+}).observe($('preview'));
 
 // ---------- keyboard shortcut ----------
 
