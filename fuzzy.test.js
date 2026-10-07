@@ -1,7 +1,8 @@
 // Run: node --test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { scoreItem } from './fuzzy.js';
+import { scoreItem, siteFor } from './fuzzy.js';
+import { SITES } from './settings.js';
 
 const mdn = { title: 'MDN Web Docs', displayUrl: 'developer.mozilla.org' };
 const gh = { title: 'flutter/flutter: Flutter makes apps', displayUrl: 'github.com/flutter/flutter' };
@@ -18,4 +19,12 @@ test('highlights each token in the line it matched better', () => {
   const mixed = scoreItem(['gh', 'flutter'], gh);
   assert.ok(mixed.urlPositions.has(0), 'gh lands on github.com');
   assert.ok(mixed.titlePositions.has(0), 'flutter lands on the title');
+});
+
+test('site search triggers on a shortcut or a name prefix, one word only', () => {
+  assert.equal(siteFor('yt', SITES)?.name, 'YouTube');
+  assert.equal(siteFor('YouT ', SITES)?.name, 'YouTube');
+  assert.equal(siteFor('gh', SITES)?.name, 'GitHub');
+  assert.equal(siteFor('y', SITES), null, 'one letter only counts as an exact shortcut');
+  assert.equal(siteFor('gh flutter', SITES), null, 'multi-word queries stay a normal search');
 });

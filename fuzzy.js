@@ -95,3 +95,11 @@ export function scoreItem(tokens, item) {
   }
   return { score: total, titlePositions, urlPositions };
 }
+
+/** Site whose shortcut, or 2+ letters of its name, is the whole query. */
+export function siteFor(query, sites) {
+  const q = query.trim().toLowerCase();
+  if (!q || /\s/.test(q)) return null;
+  return sites.find((s) => s.keyword === q) ||
+    (q.length >= 2 && sites.find((s) => s.name.toLowerCase().startsWith(q))) || null;
+}

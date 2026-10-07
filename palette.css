@@ -22,6 +22,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 
 html, body {
   margin: 0;
@@ -96,6 +97,28 @@ html, body {
   caret-color: var(--ink-strong);
 }
 #q::placeholder { color: var(--faint); }
+
+/* Site search: the chip replaces the search icon; filters don't apply. */
+.search[data-site] .search-icon { display: none; }
+.search[data-site] + .scopes { opacity: 0.4; pointer-events: none; }
+.site-chip {
+  flex: none;
+  padding: 6px 10px;
+  border-radius: 7px;
+  background: var(--selected);
+  color: var(--ink-strong);
+  font: 500 14px/1 var(--font);
+  white-space: nowrap;
+}
+.site-hint {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
 
 /* Scope filters */
 .scopes {
@@ -185,7 +208,8 @@ img.icon { border-radius: 3px; }
 .row[data-type="bookmark"] .kind { --dot: var(--bookmark); }
 .row[data-type="history"] .kind { --dot: var(--history); }
 .row[data-type="setting"] .kind { --dot: var(--setting); }
-.row[data-type="search"] .kind::before { display: none; }
+.row[data-type="search"] .kind::before,
+.row[data-type="site"] .kind::before { display: none; }
 .row.selected .kind { color: var(--muted); }
 
 .empty {

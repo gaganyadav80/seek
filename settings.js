@@ -41,3 +41,16 @@ export const CHROME_PAGES = [
   ['GPU info', 'chrome://gpu', 'graphics webgl'],
   ['Inspect devices', 'chrome://inspect', 'devtools remote debugging'],
 ].map(([title, url, keywords]) => ({ title, url, keywords }));
+
+// Site search, like chrome://settings/searchEngines (extensions can't read
+// Chrome's own list, so add yours here). Type a shortcut, or 2+ letters of a
+// name, then press Tab to search that site. %s is replaced by the query.
+export const SITES = [
+  ['YouTube', 'yt', 'https://www.youtube.com/results?search_query=%s'],
+  ['Google', 'g', 'https://www.google.com/search?q=%s'],
+  ['GitHub', 'gh', 'https://github.com/search?q=%s'],
+  ['Wikipedia', 'w', 'https://en.wikipedia.org/wiki/Special:Search?search=%s'],
+  ['Google Maps', 'maps', 'https://www.google.com/maps/search/%s'],
+  ['Reddit', 'r', 'https://www.reddit.com/search/?q=%s'],
+  ['MDN', 'mdn', 'https://developer.mozilla.org/en-US/search?q=%s'],
+].map(([name, keyword, url]) => ({ name, keyword, url }));

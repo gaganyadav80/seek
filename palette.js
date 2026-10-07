@@ -1,5 +1,5 @@
-import { scoreItem } from './fuzzy.js';
-import { CHROME_PAGES } from './settings.js';
+import { scoreItem, siteFor } from './fuzzy.js';
+import { CHROME_PAGES, SITES } from './settings.js';
 
 const params = new URLSearchParams(location.search);
 const MODE = params.get('mode') === 'popup' ? 'popup' : 'frame';
@@ -17,7 +17,7 @@ const SCOPES = [
   { id: 'history', label: 'History' },
   { id: 'setting', label: 'Settings' },
 ];
-const KIND_LABEL = { tab: 'Tab', bookmark: 'Bookmark', history: 'History', setting: 'Setting', search: 'Web' };
+const KIND_LABEL = { tab: 'Tab', bookmark: 'Bookmark', history: 'History', setting: 'Setting', search: 'Web', site: 'Site' };
 
 const state = {
   query: '',
@@ -26,12 +26,18 @@ const state = {
   results: [],
   selected: 0,
   originTab: null,
+  site: null, // active site search
+  hint: null, // site that Tab would switch to
 };
 
 const $q = document.getElementById('q');
 const $results = document.getElementById('results');
 const $scopes = document.getElementById('scopes');
 const $footer = document.getElementById('footer');
+const $search = $q.closest('.search');
+const $chip = document.getElementById('site-chip');
+const $hint = document.getElementById('site-hint');
+const PLACEHOLDER = $q.placeholder;
 
 // ---------- helpers ----------
 
@@ -150,9 +156,9 @@ function boost(item, now) {
   }
 }
 
-function emptyQueryResults() {
+function emptyQueryResults(scope, onSite) {
   const byRecent = (key) => (a, b) => b[key] - a[key];
-  switch (state.scope) {
+  switch (scope) {
     case 'tab':
       return [...state.items.tab].sort(byRecent('lastAccessed'));
     case 'bookmark':
@@ -162,9 +168,9 @@ function emptyQueryResults() {
     case 'setting':
       return state.items.setting;
     default: {
-      const tabs = [...state.items.tab].sort(byRecent('lastAccessed'));
+      const tabs = state.items.tab.filter(onSite).sort(byRecent('lastAccessed'));
       const open = new Set(tabs.map((t) => normalizeUrl(t.url)));
-      const recent = state.items.history.filter((h) => !open.has(normalizeUrl(h.url))).slice(0, 10);
+      const recent = state.items.history.filter((h) => onSite(h) && !open.has(normalizeUrl(h.url))).slice(0, 10);
       return [...tabs, ...recent];
     }
   }
@@ -174,16 +180,25 @@ function rank({ keepSelection = false } = {}) {
   const prevKey = keepSelection ? state.results[state.selected]?.item.key : null;
   const raw = state.query.trim();
   const tokens = raw.toLowerCase().split(/\s+/).filter(Boolean);
+  // Site search runs the "All" search limited to that site's domain.
+  // ponytail: host match only, so Google Maps also lists other google.com pages.
+  const { site } = state;
+  const scope = site ? 'all' : state.scope;
+  const host = site && new URL(site.url).hostname.replace(/^www\./, '');
+  const onSite = site
+    ? (item) => { const h = item.displayUrl.split(/[/?#]/)[0]; return h === host || h.endsWith('.' + host); }
+    : () => true;
   let results;
 
   if (!tokens.length) {
-    results = emptyQueryResults().slice(0, MAX_RESULTS).map((item) => ({ item, hl: null }));
+    results = emptyQueryResults(scope, onSite).slice(0, MAX_RESULTS).map((item) => ({ item, hl: null }));
   } else {
-    const pools = state.scope === 'all' ? ['tab', 'bookmark', 'setting', 'history'] : [state.scope];
+    const pools = scope === 'all' ? ['tab', 'bookmark', 'setting', 'history'] : [scope];
     const now = Date.now();
     const scored = [];
     for (const type of pools) {
       for (const item of state.items[type]) {
+        if (!onSite(item)) continue;
         const m = scoreItem(tokens, item);
         if (m) scored.push({ item, hl: m.titlePositions, urlHl: m.urlPositions, score: m.score + boost(item, now) });
       }
@@ -191,7 +206,7 @@ function rank({ keepSelection = false } = {}) {
     scored.sort((a, b) => b.score - a.score);
 
     // In "All", show each URL once (the tab beats the bookmark beats history).
-    if (state.scope === 'all') {
+    if (scope === 'all') {
       const seen = new Set();
       results = [];
       for (const r of scored) {
@@ -201,10 +216,15 @@ function rank({ keepSelection = false } = {}) {
         results.push(r);
         if (results.length >= MAX_RESULTS) break;
       }
-      results.push({ item: { type: 'search', key: 'search', title: `Search the web for “${raw}”`, displayUrl: '' }, hl: null });
+      if (!site) results.push({ item: { type: 'search', key: 'search', title: `Search the web for “${raw}”`, displayUrl: '' }, hl: null });
     } else {
       results = scored.slice(0, MAX_RESULTS);
     }
+  }
+
+  if (site && raw) {
+    const url = site.url.replace('%s', encodeURIComponent(raw));
+    results.unshift({ item: { type: 'site', key: 'site', title: `Search ${site.name} for “${raw}”`, url, displayUrl: '' }, hl: null });
   }
 
   state.results = results;
@@ -294,7 +314,9 @@ function renderResults() {
   if (!state.results.length) {
     const li = document.createElement('li');
     li.className = 'empty';
-    li.textContent = state.query.trim()
+    li.textContent = state.site
+      ? `Type to search ${state.site.name}.`
+      : state.query.trim()
       ? 'No matches. Try fewer letters or switch the filter with Tab.'
       : 'Nothing here yet.';
     $results.replaceChildren(li);
@@ -342,6 +364,26 @@ function setScope(id) {
   renderScopes();
   rank();
   $q.focus();
+}
+
+function updateHint() {
+  state.hint = state.site ? null : siteFor(state.query, SITES);
+  $hint.hidden = !state.hint;
+  if (!state.hint) return;
+  const kbd = document.createElement('kbd');
+  kbd.textContent = 'Tab';
+  $hint.replaceChildren(kbd, `to search ${state.hint.name}`);
+}
+
+function setSite(site) {
+  state.site = site;
+  $search.toggleAttribute('data-site', !!site);
+  $chip.hidden = !site;
+  $chip.textContent = site ? site.name : '';
+  $q.placeholder = site ? `Search ${site.name}` : PLACEHOLDER;
+  $q.value = state.query = '';
+  updateHint();
+  rank();
 }
 
 function renderFooter() {
@@ -402,6 +444,7 @@ async function activate(index, { here = false } = {}) {
 
 $q.addEventListener('input', () => {
   state.query = $q.value;
+  updateHint();
   rank();
 });
 
@@ -424,9 +467,15 @@ window.addEventListener('keydown', (e) => {
     activate(state.selected, { here: e.metaKey || e.ctrlKey });
   } else if (e.key === 'Escape') {
     e.preventDefault();
-    close();
+    if (state.site) setSite(null);
+    else close();
+  } else if (e.key === 'Backspace' && state.site && !$q.value) {
+    e.preventDefault();
+    setSite(null);
   } else if (e.key === 'Tab') {
     e.preventDefault();
+    if (state.hint && !e.shiftKey) return setSite(state.hint);
+    if (state.site) return;
     const i = SCOPES.findIndex((s) => s.id === state.scope);
     const next = (i + (e.shiftKey ? -1 : 1) + SCOPES.length) % SCOPES.length;
     setScope(SCOPES[next].id);
