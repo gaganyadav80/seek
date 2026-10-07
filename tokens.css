@@ -1,6 +1,6 @@
 /* Shared colors for the palette and the settings page. Dark by default
-   (after Arc's command bar: neutral charcoal, white-alpha selection, no
-   accent hue); settings.js sets data-theme="light" or "dark" on <html>.
+   (after Arc's command bar: neutral charcoal, white-alpha selection; the one
+   accent hue, blue, marks fuzzy matches); settings.js sets data-theme="light" or "dark" on <html>.
    No color-scheme here: the palette and the settings page each set their
    own (see palette.css and options.css). */
 :root {
@@ -12,6 +12,7 @@
   --muted: #a1a1aa;
   --faint: #85858d;
   --danger: #f87171;
+  --accent: #8ea3ff;
   --line: rgba(255, 255, 255, 0.07);
   --hover: rgba(255, 255, 255, 0.05);
   --selected: rgba(255, 255, 255, 0.09);
@@ -48,6 +49,7 @@
   --muted: #5c5c66;
   --faint: #6b6b74;
   --danger: #c42b2b;
+  --accent: #3554d1;
   --line: rgba(0, 0, 0, 0.08);
   --hover: rgba(0, 0, 0, 0.04);
   --selected: rgba(0, 0, 0, 0.065);
