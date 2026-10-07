@@ -1,6 +1,6 @@
 import { scoreItem, siteFor } from './fuzzy.js';
 import { dominantColor, pillColors } from './color.js';
-import { CHROME_PAGES, SITES } from './settings.js';
+import { CHROME_PAGES, loadPrefs, watchPrefs, faviconUrl } from './settings.js';
 
 const params = new URLSearchParams(location.search);
 const MODE = params.get('mode') === 'popup' ? 'popup' : 'frame';
@@ -10,6 +10,8 @@ const SELF_PREFIX = chrome.runtime.getURL('');
 const MAX_RESULTS = 60;
 
 document.documentElement.dataset.mode = MODE;
+const prefs = await loadPrefs();
+watchPrefs(prefs, (changes) => changes.sites && updateHint());
 
 const SCOPES = [
   { id: 'all', label: 'All' },
@@ -50,13 +52,6 @@ function displayUrl(url) {
   } catch {
     return url || '';
   }
-}
-
-function faviconUrl(pageUrl) {
-  const u = new URL(chrome.runtime.getURL('/_favicon/'));
-  u.searchParams.set('pageUrl', pageUrl);
-  u.searchParams.set('size', '32');
-  return u.toString();
 }
 
 function normalizeUrl(url) {
@@ -134,6 +129,14 @@ function loadSettings() {
     displayUrl: p.url,
     keywords: p.keywords,
   }));
+  state.items.setting.unshift({
+    type: 'setting',
+    key: 'set:seek',
+    title: 'Seek settings',
+    url: chrome.runtime.getURL('options.html'),
+    displayUrl: 'Theme, shortcut, site search',
+    keywords: 'seek options preferences',
+  });
 }
 
 // ---------- ranking ----------
@@ -391,18 +394,19 @@ function siteColor(site) {
   return siteColors.get(site.url);
 }
 
-const NEUTRAL = [228, 228, 231]; // black-and-white icons get a light pill
+// Black-and-white icons get a pill in the theme's ink color.
+const neutral = () => (document.documentElement.dataset.theme === 'light' ? [39, 39, 42] : [228, 228, 231]);
 
 function paintSite(rgb) {
   const { bg, lightText } = pillColors(rgb);
   const s = document.documentElement.style;
   s.setProperty('--site', `rgb(${rgb})`);
   s.setProperty('--site-pill', `rgb(${bg})`);
-  s.setProperty('--site-ink', lightText ? 'var(--ink-strong)' : 'var(--surface)');
+  s.setProperty('--site-ink', lightText ? '#fafafa' : '#111113'); // fixed: the pill isn't themed
 }
 
 function updateHint() {
-  state.hint = state.site ? null : siteFor(state.query, SITES);
+  state.hint = state.site ? null : siteFor(state.query, prefs.sites);
   $hint.hidden = !state.hint;
   if (!state.hint) return;
   siteColor(state.hint);
@@ -424,7 +428,7 @@ function setSite(site) {
   document.body.classList.remove('site-enter');
   if (site) siteColor(site).then((rgb) => {
     if (state.site !== site) return;
-    paintSite(rgb || NEUTRAL);
+    paintSite(rgb || neutral());
     void document.body.offsetWidth; // restart the entry animation
     document.body.classList.add('site-enter');
   });

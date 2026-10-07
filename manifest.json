@@ -4,7 +4,8 @@
   "name": "Seek",
   "version": "1.0.0",
   "description": "Fuzzy search your tabs, bookmarks, history and Chrome settings from one keyboard shortcut.",
-  "permissions": ["tabs", "history", "bookmarks", "favicon", "scripting", "activeTab", "search"],
+  "permissions": ["tabs", "history", "bookmarks", "favicon", "scripting", "activeTab", "search", "storage"],
+  "options_ui": { "page": "options.html", "open_in_tab": true },
   "background": { "service_worker": "background.js" },
   "action": {
     "default_title": "Seek (search tabs, bookmarks, history)",

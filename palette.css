@@ -1,30 +1,8 @@
-/* Always dark, after Arc's command bar: neutral charcoal, white-alpha
-   selection, no accent hue. No color-scheme declaration on purpose: it would
-   make the iframe opaque on light pages. */
-:root {
-  --surface: #111113;
-  --ink: #e4e4e7;
-  --ink-strong: #fafafa;
-  --muted: #a1a1aa;
-  --faint: #85858d;
-  --line: rgba(255, 255, 255, 0.07);
-  --hover: rgba(255, 255, 255, 0.05);
-  --selected: rgba(255, 255, 255, 0.09);
-  --scrim: rgba(0, 0, 0, 0.5);
+@import url("tokens.css");
 
-  --tab: #8fa8ff;
-  --bookmark: #e5b649;
-  --history: #9a9aa3;
-  --setting: #4cc9a8;
-
-  --site: var(--ink); /* set per site from its favicon */
-  --site-pill: var(--ink);
-  --site-ink: var(--surface);
-
-  --radius: 14px;
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-}
+/* Must match the overlay iframe's color-scheme (background.js), or Chrome
+   paints the frame opaque. Colors come from the theme tokens either way. */
+:root { color-scheme: light dark; }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -57,16 +35,12 @@ html, body {
   border-radius: var(--radius);
 }
 
-/* Light inner rim for dark pages, dark outer ring for light ones. */
 .panel {
   display: flex;
   flex-direction: column;
   background: var(--surface);
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 0 0 1px rgba(0, 0, 0, 0.5),
-    0 24px 64px -12px rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--rim);
+  box-shadow: var(--panel-shadow);
   overflow: hidden;
 }
 
@@ -221,7 +195,7 @@ html, body {
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+  scrollbar-color: var(--thumb) transparent;
 }
 
 .row {
@@ -305,7 +279,7 @@ kbd {
   border: 1px solid var(--line);
   border-bottom-width: 2px;
   border-radius: 5px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--key);
   color: var(--ink);
 }
 

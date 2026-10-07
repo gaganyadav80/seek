@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Seek settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <!-- Icons: Phosphor (regular), MIT, https://phosphoricons.com -->
+  <main>
+    <header class="title">
+      <img src="icons/128.png" alt="" width="40" height="40">
+      <h1>Seek settings</h1>
+    </header>
+
+    <section aria-labelledby="appearance-h">
+      <h2 id="appearance-h">Appearance</h2>
+      <div class="group">
+        <div class="row">
+          <div class="row-text">
+            <div class="row-title" id="theme-label">Theme</div>
+            <div class="row-sub">System follows your computer's light or dark mode.</div>
+          </div>
+          <div class="seg" role="radiogroup" aria-labelledby="theme-label">
+            <label title="Light">
+              <input type="radio" name="theme" value="light">
+              <svg viewBox="0 0 256 256" aria-hidden="true"><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"/></svg>
+              <span class="sr">Light</span>
+            </label>
+            <label title="Dark">
+              <input type="radio" name="theme" value="dark">
+              <svg viewBox="0 0 256 256" aria-hidden="true"><path d="M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z"/></svg>
+              <span class="sr">Dark</span>
+            </label>
+            <label title="System">
+              <input type="radio" name="theme" value="system">
+              <svg viewBox="0 0 256 256" aria-hidden="true"><path d="M208,40H48A24,24,0,0,0,24,64V176a24,24,0,0,0,24,24h72v16H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16H136V200h72a24,24,0,0,0,24-24V64A24,24,0,0,0,208,40ZM48,56H208a8,8,0,0,1,8,8v80H40V64A8,8,0,0,1,48,56ZM208,184H48a8,8,0,0,1-8-8V160H216v16A8,8,0,0,1,208,184Z"/></svg>
+              <span class="sr">System</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="shortcut-h">
+      <h2 id="shortcut-h">Keyboard shortcut</h2>
+      <div class="group">
+        <div class="row">
+          <div class="row-text">
+            <div class="row-title">Open Seek</div>
+          </div>
+          <span class="keys" id="keys"></span>
+          <button type="button" class="btn secondary" id="change-shortcut">Change</button>
+        </div>
+      </div>
+      <p class="note">Chrome manages extension shortcuts, so Change opens its shortcuts page.</p>
+    </section>
+
+    <section aria-labelledby="sites-h">
+      <div class="section-head">
+        <h2 id="sites-h">Site search</h2>
+        <button type="button" class="btn secondary" id="add-site">
+          <svg viewBox="0 0 256 256" aria-hidden="true"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></svg>
+          Add site
+        </button>
+      </div>
+      <ul class="group" id="sites"></ul>
+      <p class="note">In Seek, type a shortcut and press Tab to search that site.</p>
+    </section>
+  </main>
+
+  <template id="site-row">
+    <li>
+      <button type="button" class="site">
+        <img class="favicon" alt="" width="16" height="16">
+        <span class="site-name"></span>
+        <kbd class="site-key"></kbd>
+        <span class="site-url"></span>
+        <svg class="chevron" viewBox="0 0 256 256" aria-hidden="true"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>
+      </button>
+    </li>
+  </template>
+
+  <dialog id="editor" aria-labelledby="editor-title" closedby="any">
+    <form id="site-form" novalidate>
+      <h3 id="editor-title">Add site</h3>
+      <div class="field">
+        <label for="f-name">Name</label>
+        <input id="f-name" name="name" autocomplete="off" placeholder="e.g. YouTube" aria-describedby="e-name">
+        <p class="error" id="e-name"></p>
+      </div>
+      <div class="field">
+        <label for="f-keyword">Shortcut</label>
+        <input id="f-keyword" name="keyword" autocomplete="off" spellcheck="false" placeholder="e.g. yt" aria-describedby="h-keyword e-keyword">
+        <p class="hint" id="h-keyword">One word. Type it in Seek, then press Tab.</p>
+        <p class="error" id="e-keyword"></p>
+      </div>
+      <div class="field">
+        <label for="f-url">Search URL</label>
+        <input id="f-url" name="url" type="url" autocomplete="off" spellcheck="false" placeholder="https://www.youtube.com/results?search_query=%s" aria-describedby="h-url e-url">
+        <p class="hint" id="h-url">Put %s where the search text goes. Chrome's list at chrome://settings/searchEngines uses the same format.</p>
+        <p class="error" id="e-url"></p>
+      </div>
+      <p class="error" id="e-form" role="alert"></p>
+      <div class="actions">
+        <button type="button" class="btn danger" id="delete-site">Delete</button>
+        <button type="button" class="btn secondary" id="cancel">Cancel</button>
+        <button type="submit" class="btn primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { scoreItem, siteFor } from './fuzzy.js';
-import { SITES } from './settings.js';
+import { SITES, validateSite, shortcutKeys } from './settings.js';
 import { dominantColor, pillColors, contrast } from './color.js';
 
 const mdn = { title: 'MDN Web Docs', displayUrl: 'developer.mozilla.org' };
@@ -39,4 +39,22 @@ test('site color comes from the most common saturated hue, white text stays read
   const red = pillColors([255, 0, 0]);
   assert.ok(red.lightText && contrast(red.bg, [250, 250, 250]) >= 4.5, 'red darkens slightly for white text');
   assert.equal(pillColors([255, 214, 0]).lightText, false, 'yellow gets dark text');
+});
+
+test('site entries from settings are checked before saving', () => {
+  const ok = validateSite({ name: ' npm ', keyword: 'NPM', url: 'https://www.npmjs.com/search?q=%s' }, SITES);
+  assert.deepEqual(ok.errors, {});
+  assert.deepEqual(ok.site, { name: 'npm', keyword: 'npm', url: 'https://www.npmjs.com/search?q=%s' });
+
+  const errorsFor = (entry, editing) => Object.keys(validateSite(entry, SITES, editing).errors).sort();
+  assert.deepEqual(errorsFor({ name: '', keyword: 'two words', url: 'https://x.com/?q=' }), ['keyword', 'name', 'url']);
+  assert.deepEqual(errorsFor({ name: 'Y', keyword: 'yt', url: 'https://y.com/?q=%s' }), ['keyword'], 'shortcut taken');
+  assert.deepEqual(errorsFor({ name: 'Y', keyword: 'yt', url: 'https://y.com/?q=%s' }, 0), [], 'editing keeps its own shortcut');
+  assert.deepEqual(errorsFor({ name: 'X', keyword: 'x', url: 'javascript:alert(%s)' }), ['url'], 'web addresses only');
+});
+
+test('shortcuts split into keys on Mac and elsewhere', () => {
+  assert.deepEqual(shortcutKeys('⇧⌘K'), ['⇧', '⌘', 'K']);
+  assert.deepEqual(shortcutKeys('Ctrl+Shift+K'), ['Ctrl', 'Shift', 'K']);
+  assert.deepEqual(shortcutKeys(''), []);
 });

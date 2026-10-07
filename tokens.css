@@ -1,0 +1,70 @@
+/* Shared colors for the palette and the settings page. Dark by default
+   (after Arc's command bar: neutral charcoal, white-alpha selection, no
+   accent hue); settings.js sets data-theme="light" or "dark" on <html>.
+   No color-scheme here: the palette and the settings page each set their
+   own (see palette.css and options.css). */
+:root {
+  --canvas: #09090a;
+  --surface: #111113;
+  --raised: #2a2a2e;
+  --ink: #e4e4e7;
+  --ink-strong: #fafafa;
+  --muted: #a1a1aa;
+  --faint: #85858d;
+  --danger: #f87171;
+  --line: rgba(255, 255, 255, 0.07);
+  --hover: rgba(255, 255, 255, 0.05);
+  --selected: rgba(255, 255, 255, 0.09);
+  --key: rgba(255, 255, 255, 0.05);
+  --thumb: rgba(255, 255, 255, 0.16);
+  --scrim: rgba(0, 0, 0, 0.5);
+  /* Light inner rim for dark pages, dark outer ring for light ones. */
+  --rim: rgba(255, 255, 255, 0.13);
+  --panel-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    0 24px 64px -12px rgba(0, 0, 0, 0.55);
+
+  --tab: #8fa8ff;
+  --bookmark: #e5b649;
+  --history: #9a9aa3;
+  --setting: #4cc9a8;
+
+  --site: var(--ink); /* set per site from its favicon */
+  --site-pill: var(--ink);
+  --site-ink: var(--surface);
+
+  --radius: 14px;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+}
+
+:root[data-theme="light"] {
+  --canvas: #f2f2f4;
+  --surface: #fcfcfd;
+  --raised: #ffffff;
+  --ink: #27272a;
+  --ink-strong: #09090b;
+  --muted: #5c5c66;
+  --faint: #6b6b74;
+  --danger: #c42b2b;
+  --line: rgba(0, 0, 0, 0.08);
+  --hover: rgba(0, 0, 0, 0.04);
+  --selected: rgba(0, 0, 0, 0.065);
+  --key: rgba(0, 0, 0, 0.04);
+  --thumb: rgba(0, 0, 0, 0.18);
+  --scrim: rgba(0, 0, 0, 0.25);
+  --rim: rgba(0, 0, 0, 0.1);
+  --panel-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.03),
+    0 24px 64px -12px rgba(0, 0, 0, 0.28);
+
+  --tab: #3554d1;
+  --bookmark: #a16207;
+  --history: #6b7280;
+  --setting: #0f766e;
+}
+
+/* Hidden until settings.js has applied the saved theme, so a light theme
+   never flashes dark first. */
+html:not([data-theme]) body { visibility: hidden; }

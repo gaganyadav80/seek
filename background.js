@@ -42,9 +42,11 @@ function togglePaletteFrame(src) {
   frame.src = src;
   frame.setAttribute('aria-label', 'Seek');
   // Inline !important so page CSS can't interfere. Chrome paints an iframe
-  // opaque white when its color-scheme differs from the document inside, and
-  // the palette document is light. `normal` isn't enough: on pages with
-  // <meta name="color-scheme" content="dark"> (scrimba.com) it resolves to dark.
+  // opaque when its color-scheme differs from the document inside, and it
+  // answers prefers-color-scheme inside the frame from the frame's scheme.
+  // `light dark` on both (palette.css) keeps them equal and passes the OS
+  // setting through for the System theme. `normal` isn't enough: pages with
+  // <meta name="color-scheme" content="dark"> (scrimba.com) turn it dark.
   // The blur has to live here: a backdrop-filter inside the iframe can't see
   // the page, and without it the dark panel sinks into dark pages.
   frame.setAttribute(
@@ -52,7 +54,7 @@ function togglePaletteFrame(src) {
     [
       'position:fixed', 'inset:0', 'width:100vw', 'height:100vh',
       'max-width:none', 'max-height:none', 'margin:0', 'padding:0',
-      'border:0', 'background:transparent', 'color-scheme:light',
+      'border:0', 'background:transparent', 'color-scheme:light dark',
       'backdrop-filter:blur(6px)',
       'z-index:2147483647', 'display:block', 'opacity:1', 'transform:none',
     ].map((d) => d + ' !important').join(';')

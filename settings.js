@@ -42,9 +42,10 @@ export const CHROME_PAGES = [
   ['Inspect devices', 'chrome://inspect', 'devtools remote debugging'],
 ].map(([title, url, keywords]) => ({ title, url, keywords }));
 
-// Site search, like chrome://settings/searchEngines (extensions can't read
-// Chrome's own list, so add yours here). Type a shortcut, or 2+ letters of a
-// name, then press Tab to search that site. %s is replaced by the query.
+// Default site search entries, like chrome://settings/searchEngines (extensions
+// can't read Chrome's own list). People edit theirs in Seek settings. Type a
+// shortcut, or 2+ letters of a name, then press Tab to search that site.
+// %s is replaced by the query.
 export const SITES = [
   ['YouTube', 'yt', 'https://www.youtube.com/results?search_query=%s'],
   ['Google', 'g', 'https://www.google.com/search?q=%s'],
@@ -54,3 +55,71 @@ export const SITES = [
   ['Reddit', 'r', 'https://www.reddit.com/search/?q=%s'],
   ['MDN', 'mdn', 'https://developer.mozilla.org/en-US/search?q=%s'],
 ].map(([name, keyword, url]) => ({ name, keyword, url }));
+
+// ---------- saved preferences (settings page and palette) ----------
+
+// ponytail: sites live in one synced item (8 KB), ~70 entries; split per site if people hit it.
+export const DEFAULT_PREFS = { theme: 'dark', sites: SITES };
+
+/** Saved preferences, falling back to the defaults. */
+export function loadPrefs() {
+  return chrome.storage.sync.get(DEFAULT_PREFS).catch(() => DEFAULT_PREFS);
+}
+
+/** Sets data-theme on <html> to light or dark; 'system' follows the OS. */
+export function applyTheme(mode) {
+  const light = mode === 'light' || (mode === 'system' && matchMedia('(prefers-color-scheme: light)').matches);
+  document.documentElement.dataset.theme = light ? 'light' : 'dark';
+}
+
+/**
+ * Applies the theme, then keeps `prefs` and the theme current while the page
+ * is open: saved changes (from the settings page or another device) and OS
+ * light/dark switches. `onChange(changes)` runs after a saved change.
+ */
+export function watchPrefs(prefs, onChange = () => {}) {
+  const apply = () => applyTheme(prefs.theme);
+  apply();
+  matchMedia('(prefers-color-scheme: light)').addEventListener('change', apply);
+  chrome.storage.sync.onChanged.addListener((changes) => {
+    for (const [key, { newValue }] of Object.entries(changes)) {
+      if (key in DEFAULT_PREFS) prefs[key] = newValue ?? DEFAULT_PREFS[key];
+    }
+    apply();
+    onChange(changes);
+  });
+}
+
+/** Checks a site search entry from the settings form. Returns { site, errors }; no errors means valid. */
+export function validateSite({ name = '', keyword = '', url = '' }, sites, editing = -1) {
+  const site = { name: name.trim(), keyword: keyword.trim().toLowerCase(), url: url.trim() };
+  const errors = {};
+  if (!site.name) errors.name = 'Add a name.';
+  if (!site.keyword) errors.keyword = 'Add a shortcut.';
+  else if (/\s/.test(site.keyword)) errors.keyword = 'Use one word, no spaces.';
+  else if (sites.some((s, i) => i !== editing && s.keyword === site.keyword)) {
+    errors.keyword = `“${site.keyword}” is already used.`;
+  }
+  let parsed = null;
+  try { parsed = new URL(site.url.replace('%s', 'seek')); } catch {}
+  if (!site.url) errors.url = 'Add a search URL.';
+  else if (!/^https?:$/.test(parsed?.protocol)) errors.url = 'Enter a web address starting with https://';
+  else if (!site.url.includes('%s')) errors.url = 'Put %s where the search text goes.';
+  return { site, errors };
+}
+
+/** Splits a Chrome command shortcut ("⇧⌘K" on Mac, "Ctrl+Shift+K" elsewhere) into keys. */
+export function shortcutKeys(shortcut) {
+  if (!shortcut) return [];
+  if (shortcut.includes('+')) return shortcut.split('+');
+  const [, mods, key] = shortcut.match(/^([⌃⌥⇧⌘]*)(.*)$/);
+  return [...mods, key].filter(Boolean);
+}
+
+/** Chrome's cached favicon for a page. Works from extension pages only. */
+export function faviconUrl(pageUrl) {
+  const u = new URL(chrome.runtime.getURL('/_favicon/'));
+  u.searchParams.set('pageUrl', pageUrl);
+  u.searchParams.set('size', '32');
+  return u.toString();
+}
