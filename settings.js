@@ -69,6 +69,21 @@ export const DEFAULT_PREFS = {
   style: 'evolved', // how Seek looks: 'evolved' (solid) or 'fluid' (glass); palette.css has both
 };
 
+/**
+ * A URL as Seek shows it: web pages without the scheme, www. or a trailing
+ * slash. The browser's own pages drop their scheme too, since it names the
+ * browser (chrome://settings/privacy shows as settings/privacy).
+ */
+export function displayUrl(url) {
+  try {
+    const u = new URL(url);
+    if (/^https?:$/.test(u.protocol)) return (u.host.replace(/^www\./, '') + u.pathname + u.search + u.hash).replace(/\/$/, '');
+    return u.protocol === 'file:' ? url : url.replace(/^[a-z-]+:\/\//, '');
+  } catch {
+    return url || '';
+  }
+}
+
 /** True for the browser's own new tab page (chrome://newtab, brave://newtab, edge://newtab…). */
 export function isNewTab(url) {
   return /^(?!https?:)[a-z-]+:\/\/(newtab|new-tab-page)(\/|$)/.test(url || '');

@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { scoreItem, siteFor } from './fuzzy.js';
-import { SITES, validateSite, shortcutKeys, sitesUpdate, isNewTab } from './settings.js';
+import { SITES, validateSite, shortcutKeys, sitesUpdate, isNewTab, displayUrl } from './settings.js';
 import { dominantColor, pillColors, contrast } from './color.js';
 
 const mdn = { title: 'MDN Web Docs', displayUrl: 'developer.mozilla.org' };
@@ -73,4 +73,13 @@ test('new tab pages are recognised across browsers, other pages are not', () => 
   for (const url of ['chrome://settings', 'https://newtab.example.com/', 'chrome-extension://x/palette.html?mode=page', '', undefined]) {
     assert.ok(!isNewTab(url), String(url));
   }
+});
+
+test('shows URLs without the scheme, and never the browser\'s name', () => {
+  assert.equal(displayUrl('https://www.github.com/flutter/flutter/'), 'github.com/flutter/flutter');
+  assert.equal(displayUrl('chrome://settings/privacy'), 'settings/privacy');
+  assert.equal(displayUrl('brave://rewards/'), 'rewards/');
+  assert.equal(displayUrl('file:///Users/me/notes.html'), 'file:///Users/me/notes.html');
+  assert.equal(displayUrl('about:blank'), 'about:blank');
+  assert.equal(displayUrl(undefined), '');
 });

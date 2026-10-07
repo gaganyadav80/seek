@@ -1,6 +1,6 @@
 import { scoreItem, siteFor } from './fuzzy.js';
 import { dominantColor, pillColors } from './color.js';
-import { CHROME_PAGES, loadPrefs, watchPrefs, faviconUrl, isNewTab } from './settings.js';
+import { CHROME_PAGES, loadPrefs, watchPrefs, faviconUrl, isNewTab, displayUrl } from './settings.js';
 
 const params = new URLSearchParams(location.search);
 // frame: overlay on a page; popup: toolbar dropdown; page: Seek as a whole new tab
@@ -57,16 +57,6 @@ const $hint = document.getElementById('site-hint');
 const PLACEHOLDER = $q.placeholder;
 
 // ---------- helpers ----------
-
-function displayUrl(url) {
-  try {
-    const u = new URL(url);
-    if (!/^https?:$/.test(u.protocol)) return url;
-    return (u.host.replace(/^www\./, '') + u.pathname + u.search + u.hash).replace(/\/$/, '');
-  } catch {
-    return url || '';
-  }
-}
 
 function normalizeUrl(url) {
   return (url || '').replace(/#.*$/, '').replace(/\/$/, '');
@@ -145,7 +135,7 @@ function loadSettings() {
     key: 'set:' + i,
     title: p.title,
     url: p.url,
-    displayUrl: p.url,
+    displayUrl: displayUrl(p.url),
     keywords: p.keywords,
   }));
   state.items.setting.unshift({
