@@ -15,14 +15,11 @@ async function openPalette(tab) {
   if (!tab) [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
   if (tab?.id == null) return;
 
-  // The page behind the overlay is blurred from out here (see togglePaletteFrame);
-  // Fluid's glass frosts it harder.
-  const { style } = await chrome.storage.sync.get({ style: DEFAULT_PREFS.style });
   try {
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: togglePaletteFrame,
-      args: [chrome.runtime.getURL(`palette.html?mode=frame&tab=${tab.id}`), style === 'fluid' ? 'blur(20px) saturate(1.4)' : 'blur(6px)'],
+      args: [chrome.runtime.getURL(`palette.html?mode=frame&tab=${tab.id}`)],
     });
   } catch {
     await openPopup(tab); // restricted page
@@ -57,7 +54,7 @@ chrome.tabs.onCreated.addListener(async (tab) => {
 });
 
 // Runs inside the web page (isolated world). Must be self-contained.
-function togglePaletteFrame(src, blur) {
+function togglePaletteFrame(src) {
   const ID = '__seek_palette__';
   const existing = document.getElementById(ID);
   if (existing) {
@@ -83,7 +80,7 @@ function togglePaletteFrame(src, blur) {
       'position:fixed', 'inset:0', 'width:100vw', 'height:100vh',
       'max-width:none', 'max-height:none', 'margin:0', 'padding:0',
       'border:0', 'background:transparent', 'color-scheme:light dark',
-      'backdrop-filter:' + blur,
+      'backdrop-filter:blur(6px)',
       'z-index:2147483647', 'display:block', 'opacity:1', 'transform:none',
     ].map((d) => d + ' !important').join(';')
   );

@@ -1,6 +1,6 @@
 ---
 name: Seek
-description: A keyboard-first command bar over tabs, bookmarks, history and browser settings, in two styles, Solid and Glass.
+description: A keyboard-first command bar over tabs, bookmarks, history and browser settings.
 colors:
   match-blue-dark: "#8ea3ff"
   match-blue-light: "#3554d1"
@@ -27,16 +27,6 @@ colors:
   bookmark-dot-light: "#a16207"
   history-dot-light: "#6b7280"
   setting-dot-light: "#0f766e"
-  glass-dusk-canvas: "#0f1015"
-  glass-dusk-material: "rgb(30 30 36 / 0.62)"
-  glass-dusk-ink: "#e9e9ee"
-  glass-dusk-muted: "#a8a8b2"
-  glass-dusk-faint: "#91919b"
-  glass-dawn-canvas: "#ebe9e6"
-  glass-dawn-material: "rgb(250 250 251 / 0.72)"
-  glass-dawn-ink: "#232328"
-  glass-dawn-muted: "#55555f"
-  glass-dawn-faint: "#61616b"
 typography:
   query:
     fontFamily: "-apple-system, BlinkMacSystemFont, Segoe UI Variable Text, Segoe UI, Roboto, Helvetica Neue, sans-serif"
@@ -77,7 +67,6 @@ typography:
     letterSpacing: "-0.02em"
 rounded:
   favicon: "3px"
-  glass-favicon: "4px"
   key: "5px"
   menu-item: "6px"
   control: "8px"
@@ -85,7 +74,6 @@ rounded:
   row: "12px"
   group: "12px"
   bar: "20px"
-  glass-bar: "22px"
   pill: "999px"
 spacing:
   xs: "4px"
@@ -97,11 +85,6 @@ components:
   command-bar:
     backgroundColor: "{colors.charcoal-surface}"
     rounded: "{rounded.bar}"
-    width: "680px"
-    height: "460px"
-  command-bar-glass:
-    backgroundColor: "{colors.glass-dusk-material}"
-    rounded: "{rounded.glass-bar}"
     width: "680px"
     height: "460px"
   search-field:
@@ -158,16 +141,16 @@ components:
 
 Seek is a tool you reach for dozens of times a day, for a few seconds at a time. The system treats it like a precision instrument: the chrome recedes into neutral charcoal or soft mist, the finish shows only at the edges (a rim that catches light, keys with a lip, corners that nest), and the loudest thing on screen is always the result you were looking for, its matched letters in blue.
 
-It comes in two styles that share one frame. **Solid** (the default) is an opaque bar, charcoal in dark and near-white in light, with a machined rim and layered shadow. **Glass** is a frosted material over a soft field of muted color, with a specular top edge, smooth corners and press feedback that springs back. The bar, its rows, its type and its keys are the same size in both; a style changes the surface, never the layout. Both work in all three places Seek appears: the overlay on a web page, the toolbar dropdown, and Seek's own new tab page.
+The bar is opaque, charcoal in dark and near-white in light, with a machined rim and layered shadow, and it looks the same in all three places Seek appears: the overlay on a web page, the toolbar dropdown, and Seek's own new tab page. Settings has a Style menu for future styles; with only this one (Solid), it is hidden.
 
 Nothing performs. The bar has no open or close animation, keyboard selection moves instantly, and the one moment of motion is the short tap and glow when a site search starts.
 
 **Key Characteristics:**
-- Dark by default, with a finished light theme; every text color passes WCAG AA in both, in both styles, over any page.
+- Dark by default, with a finished light theme; every text color passes WCAG AA in both.
 - One accent: blue marks fuzzy-matched letters and nothing else.
 - The site's own color, taken from its favicon, appears only in the site pill and the entry glow.
 - System type throughout, no downloaded fonts.
-- Phosphor icons, bold in Solid and regular in Glass.
+- Phosphor icons, bold.
 
 ## Colors
 
@@ -177,14 +160,13 @@ A neutral charcoal and mist palette with a single blue voice, plus color that ea
 - **Match Blue** (match-blue-dark in dark, match-blue-light in light): the letters a fuzzy search matched, in titles and addresses. The only hue the interface owns.
 
 ### Secondary
-- **Type Dots** (tab, bookmark, history and setting dots, one pair per theme): the small dot beside each result's type label. Solid shows them at full color; Glass mixes them 60% toward the faint gray so they whisper.
+- **Type Dots** (tab, bookmark, history and setting dots, one pair per theme): the small dot beside each result's type label.
 
 ### Neutral
-- **Charcoal Canvas** and **Mist Canvas**: the new tab page's ground in dark and light, lit faintly from above in Solid.
-- **Charcoal Surface** and **Mist Surface**: the Solid bar, the dropdown and the settings groups.
-- **Charcoal Raised**: the settings page's theme-switch thumb and open menus in dark. Solid keycaps use their own top-lit gradient (#2c2c30 to #222225 in dark).
+- **Charcoal Canvas** and **Mist Canvas**: the new tab page's ground in dark and light, lit faintly from above.
+- **Charcoal Surface** and **Mist Surface**: the bar, the dropdown and the settings groups.
+- **Charcoal Raised**: the settings page's theme-switch thumb and open menus in dark. Keycaps use their own top-lit gradient (#2c2c30 to #222225 in dark).
 - **Pale Ink / Graphite Ink** for text, with Strong for the query, selected titles and keys, Muted for addresses and footer labels, and Faint for the placeholder, the search icon and type labels.
-- **Glass Dusk** and **Glass Dawn**: Glass's own canvas, translucent material and text colors for dark and light. The field behind the glass is four or five large, blurred regions of muted blue, plum, teal and sand (dusk) or peach, lilac, sage and wheat (dawn).
 - Selection, hover, hairlines and keycap edges are white or near-black alphas over these surfaces (5 to 13%), never new hues.
 
 ### Named Rules
@@ -199,11 +181,11 @@ A neutral charcoal and mist palette with a single blue voice, plus color that ea
 **Character:** one familiar face doing every job, so the bar feels native to the computer it runs on. Hierarchy comes from size and weight, not from a second family.
 
 ### Hierarchy
-- **Query** (500, 18px, line-height 1, -0.01em): what you type and the placeholder (placeholder at 400). Glass sets it at 400.
+- **Query** (500, 18px, line-height 1, -0.01em): what you type and the placeholder (placeholder at 400).
 - **Result title** (400, 14px, 1.35): one line, truncated with an ellipsis. Matched letters go to 600 in Match Blue.
 - **Filter label** (500, 12.5px): All, Tabs, Bookmarks, History, Settings.
 - **Meta** (400, 12px): addresses, type labels, footer hints, the Tab hint.
-- **Keycap** (600, 11px; 500 in Glass): key glyphs in the footer and settings.
+- **Keycap** (600, 11px): key glyphs in the footer and settings.
 - **Settings title** (600, 26px, -0.02em), the site editor's dialog title (600, 17px) and section headings (600, 13px, muted) on the settings page only.
 
 ### Named Rules
@@ -220,18 +202,16 @@ Below 520px wide the type labels and the last three footer hints hide, and rows 
 The settings page is a single 640px column of grouped lists (12px radius groups, 56px rows, inset hairline dividers), in the spirit of a system settings app.
 
 ### Named Rules
-**The Fixed Frame Rule.** Every style and mode uses the same frame and the same inner sizes. A new style may change color, material, edges, shadow, radius and weight; it may not change the bar's size or the size of anything in it.
+**The Fixed Frame Rule.** Every mode, and any future style, uses the same frame and the same inner sizes. A style may change color, material, edges, shadow, radius and weight; it may not change the bar's size or the size of anything in it.
 
 ## Elevation & Depth
 
-Solid is lifted: a near-black 1px ring, a short close shadow and a long soft drop beneath the bar, plus a 1px rim drawn inside the edge that is brighter at the top and fades toward the bottom, like a machined edge catching light. In light theme the shadow is softer and the rim darkens toward the bottom instead.
+The bar is lifted: a near-black 1px ring, a short close shadow and a long soft drop beneath the bar, plus a 1px rim drawn inside the edge that is brighter at the top and fades toward the bottom, like a machined edge catching light. In light theme the shadow is softer and the rim darkens toward the bottom instead.
 
-Glass is layered: a translucent material blurred 44px and saturated 170% over the color field, a thin specular edge that is brightest along the top, and a four-step soft shadow. Over a web page the overlay can't blur what's behind it from inside its frame, so the page itself is blurred 20px (6px in Solid) and the material is denser (84% dark, 94% light) to keep every text color readable over any page. With reduced transparency it becomes a solid panel.
 
 ### Shadow Vocabulary
-- **Solid lift, dark** (`box-shadow: 0 0 0 1px rgb(9 9 11 / 0.8), 0 2px 6px -2px rgb(9 9 11 / 0.6), 0 32px 80px -24px rgb(9 9 11 / 0.85)`): the bar.
-- **Solid lift, light** (`box-shadow: 0 1px 2px rgb(9 9 11 / 0.06), 0 8px 20px -10px rgb(9 9 11 / 0.14), 0 36px 80px -28px rgb(9 9 11 / 0.3)`): the bar.
-- **Glass lift, dark** (`box-shadow: 0 0 0 0.5px rgb(4 4 8 / 0.6), 0 1px 2px rgb(4 4 8 / 0.25), 0 10px 24px -8px rgb(4 4 8 / 0.45), 0 36px 90px -24px rgb(4 4 8 / 0.7)`): the bar.
+- **Lift, dark** (`box-shadow: 0 0 0 1px rgb(9 9 11 / 0.8), 0 2px 6px -2px rgb(9 9 11 / 0.6), 0 32px 80px -24px rgb(9 9 11 / 0.85)`): the bar.
+- **Lift, light** (`box-shadow: 0 1px 2px rgb(9 9 11 / 0.06), 0 8px 20px -10px rgb(9 9 11 / 0.14), 0 36px 80px -28px rgb(9 9 11 / 0.3)`): the bar.
 - **Keycap** (`box-shadow: inset 0 1px 0 <shine>, inset 0 -1px 0 <lip>, 0 1px 1px rgb(9 9 11 / 0.18)`): a lit top edge and a darker bottom lip.
 
 ### Named Rules
@@ -239,7 +219,7 @@ Glass is layered: a translucent material blurred 44px and saturated 170% over th
 
 ## Shapes
 
-Gently rounded and nested. The Solid bar has 20px corners; Glass uses 22px, or 32px continuous (squircle) corners where the browser supports them, with rows to match (17px). Result rows are 12px, filters and the site pill are full pills, keycaps are 5px in both styles, and favicons get 3px (4px in Glass). On the settings page, menus open as a 10px list of 6px items. Borders are 1px or less. A thicker edge is drawn as an inset shadow, never as a thicker border.
+Gently rounded and nested. The bar has 20px corners, result rows 12px, filters and the site pill are full pills, keycaps are 5px, and favicons get 3px. On the settings page, menus open as a 10px list of 6px items. Borders are 1px or less. A thicker edge is drawn as an inset shadow, never as a thicker border.
 
 ## Components
 
@@ -249,31 +229,31 @@ Gently rounded and nested. The Solid bar has 20px corners; Glass uses 22px, or 3
 
 ### Filters (chips)
 - **Style:** full pills of 12.5px medium text, muted at rest.
-- **State:** the active filter gets a light alpha fill and a 1px inner ring in Solid, a raised pill with a soft shadow in Glass. Tab cycles them; the change is instant.
-- **Press:** scale to 0.97 in 140ms on the standard ease-out. In Glass it springs back on release.
+- **State:** the active filter gets a light alpha fill and a 1px inner ring. Tab cycles them; the change is instant.
+- **Press:** scale to 0.97 in 140ms on the standard ease-out.
 
 ### Result rows
 - **Style:** 20px icon column (favicon, or a Phosphor glyph for web search and settings), title over address, type label with its dot on the right.
-- **Selected:** a white or near-black alpha fill (9% dark, 6.5% light) and, in Solid, a faint inner ring; the title goes to Strong. Selection follows the keyboard instantly and follows the mouse on hover.
+- **Selected:** a white or near-black alpha fill (9% dark, 6.5% light) and a faint inner ring; the title goes to Strong. Selection follows the keyboard instantly and follows the mouse on hover.
 - **Press:** scale to 0.99.
 
 ### Keycaps
-- **Style:** small keys with a top-lit gradient, a 1px edge and a 1px inset lip (Solid), or a flat translucent key with a hairline shadow (Glass). Settings uses the same lip on its own keys.
+- **Style:** small keys with a top-lit gradient, a 1px edge and a 1px inset lip. Settings uses the same lip on its own keys.
 
 ### Site pill
 - **Style:** a full pill in the site's favicon color, darkened up to 30% until white text reaches 4.5:1 (or dark text when it can't), 600 weight, with an inner top highlight and an offset shadow in its own color.
 
 ### Settings page
 - **Style:** grouped lists on the canvas; custom menus that keep native keyboard behavior; switches that fill with ink when on (no accent), their knob on a small soft shadow; a three-icon theme switch with a sliding thumb.
-- **Style preview:** under the Style menu, Seek's real new tab page (your own tabs) at 1280 by 800, scaled to the row, non-interactive and never focused. It restyles itself when the theme or style changes, under a 220ms soften.
+- **Style menu and preview (hidden):** a Style menu with, under it, Seek's real new tab page (your own tabs) at 1280 by 800, scaled to the row, non-interactive and never focused, restyling itself under a 220ms soften. Both rows stay hidden while there's one style, and the preview doesn't load until shown.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** keep the bar 680 by 460 with today's inner sizes in every style and mode (The Fixed Frame Rule).
+- **Do** keep the bar 680 by 460 with today's inner sizes in every mode (The Fixed Frame Rule).
 - **Do** use blue only for matched letters (The One Blue Rule).
-- **Do** use Phosphor icons, inlined or as masks: bold in Solid, regular in Glass.
-- **Do** check every text color for AA over the real rendered background, including Glass over white, dark and busy pages.
+- **Do** use Phosphor icons (bold), inlined or as masks.
+- **Do** check every text color for AA over the real rendered background, in both themes and all three modes.
 - **Do** keep motion to press feedback (140ms ease-out, `cubic-bezier(0.23, 1, 0.32, 1)`) and the site-search entry (tap 200ms, tint 850ms, glow 1s), and drop press scale under reduced motion.
 
 ### Don't:

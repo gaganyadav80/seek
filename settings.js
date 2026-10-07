@@ -66,7 +66,7 @@ export const DEFAULT_PREFS = {
   enterOpens: 'new', // 'new' tab, or 'current' tab (⌘↵ does the other)
   webSearch: '', // keyword of a site to search the web with; '' = the browser's default engine
   newTab: 'off', // on a new tab: 'off', 'popup' (open Seek on it) or 'page' (swap it for Seek's page)
-  style: 'evolved', // how Seek looks: 'evolved' (solid) or 'fluid' (glass); palette.css has both
+  style: 'evolved', // how Seek looks; the only style for now, so its settings row is hidden
 };
 
 /**
