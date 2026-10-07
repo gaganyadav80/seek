@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Seek",
+  "version": "1.0.0",
+  "description": "Fuzzy search your tabs, bookmarks, history and Chrome settings from one keyboard shortcut.",
+  "permissions": ["tabs", "history", "bookmarks", "favicon", "scripting", "activeTab", "search"],
+  "background": { "service_worker": "background.js" },
+  "action": {
+    "default_title": "Seek (search tabs, bookmarks, history)",
+    "default_icon": { "16": "icons/16.png", "48": "icons/48.png", "128": "icons/128.png" }
+  },
+  "icons": { "16": "icons/16.png", "48": "icons/48.png", "128": "icons/128.png" },
+  "commands": {
+    "open-palette": {
+      "suggested_key": { "default": "Ctrl+Shift+K", "mac": "Command+Shift+K" },
+      "description": "Open Seek"
+    }
+  },
+  "web_accessible_resources": [
+    { "resources": ["palette.html"], "matches": ["<all_urls>"] }
+  ]
+}

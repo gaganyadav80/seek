@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Seek</title>
+  <link rel="stylesheet" href="palette.css">
+</head>
+<body>
+  <div class="backdrop" id="backdrop"></div>
+
+  <div class="panel" role="dialog" aria-label="Search tabs, bookmarks, history and settings">
+    <label class="search">
+      <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <input id="q" type="text" autocomplete="off" spellcheck="false"
+             placeholder="Search tabs, bookmarks, history, settings"
+             role="combobox" aria-controls="results" aria-expanded="true">
+    </label>
+
+    <nav class="scopes" id="scopes" aria-label="Filter results"></nav>
+
+    <ul class="results" id="results" role="listbox"></ul>
+
+    <footer class="footer" id="footer"></footer>
+  </div>
+
+  <script type="module" src="palette.js"></script>
+</body>
+</html>
