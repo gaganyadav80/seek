@@ -98,7 +98,8 @@ function renderSites() {
   $('sites').replaceChildren(
     ...prefs.sites.map((site, i) => {
       const li = $('site-row').content.firstElementChild.cloneNode(true);
-      li.querySelector('.favicon').src = faviconUrl(new URL(site.url).origin);
+      const icon = Object.assign(new Image(16, 16), { className: 'favicon', alt: '', src: faviconUrl(new URL(site.url).origin) });
+      li.querySelector('.site').prepend(icon);
       li.querySelector('.site-name').textContent = site.name;
       li.querySelector('.site-key').textContent = site.keyword;
       li.querySelector('.site-url').textContent = site.url.replace(/^https?:\/\/(www\.)?/, '');
