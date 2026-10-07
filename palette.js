@@ -2,7 +2,7 @@ import { scoreItem } from './fuzzy.js';
 import { CHROME_PAGES } from './settings.js';
 
 const params = new URLSearchParams(location.search);
-const MODE = params.get('mode') === 'window' ? 'window' : 'frame';
+const MODE = params.get('mode') === 'popup' ? 'popup' : 'frame';
 const ORIGIN_TAB_ID = Number(params.get('tab')) || null;
 const IS_MAC = /mac/i.test(navigator.userAgentData?.platform || navigator.platform);
 const SELF_PREFIX = chrome.runtime.getURL('');
@@ -57,7 +57,7 @@ function normalizeUrl(url) {
 }
 
 function close() {
-  if (MODE === 'window') window.close();
+  if (MODE === 'popup') window.close();
   else parent.postMessage('seek:close', '*');
 }
 
@@ -394,7 +394,6 @@ async function activate(index, { here = false } = {}) {
           ? { url: item.url, windowId: origin.windowId, index: origin.index + 1, openerTabId: origin.id }
           : { url: item.url }
       );
-      if (origin && MODE === 'window') await chrome.windows.update(origin.windowId, { focused: true });
     }
   } catch (err) {
     console.error('Seek:', err);
@@ -449,7 +448,6 @@ $results.addEventListener('mousedown', (e) => e.preventDefault()); // keep focus
 
 document.getElementById('backdrop').addEventListener('mousedown', close);
 window.addEventListener('focus', () => $q.focus());
-if (MODE === 'window') window.addEventListener('blur', () => setTimeout(() => !document.hasFocus() && close(), 80));
 
 // ---------- start ----------
 

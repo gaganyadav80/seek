@@ -1,9 +1,7 @@
 // Seek — background service worker.
 // Opens the palette as an overlay iframe on normal pages. On pages Chrome
 // won't let extensions touch (chrome://, the Web Store, the New Tab page…)
-// it falls back to a small centered popup window instead.
-
-let popupWindowId = null;
+// it opens as the toolbar popup instead, which stays inside the same window.
 
 chrome.commands.onCommand.addListener((command, tab) => {
   if (command === 'open-palette') openPalette(tab);
@@ -11,57 +9,23 @@ chrome.commands.onCommand.addListener((command, tab) => {
 
 chrome.action.onClicked.addListener((tab) => openPalette(tab));
 
-chrome.windows.onRemoved.addListener((id) => {
-  if (id === popupWindowId) popupWindowId = null;
-});
-
 async function openPalette(tab) {
-  // Shortcut pressed while the fallback window is open → close it (toggle).
-  if (popupWindowId !== null) {
-    try { await chrome.windows.remove(popupWindowId); } catch {}
-    popupWindowId = null;
-    return;
-  }
-
   if (!tab) [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+  if (tab?.id == null) return;
 
-  if (tab?.id != null) {
-    const src = chrome.runtime.getURL(`palette.html?mode=frame&tab=${tab.id}`);
-    try {
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: togglePaletteFrame,
-        args: [src],
-      });
-      return;
-    } catch {
-      // Restricted page — fall through to the popup window.
-    }
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: togglePaletteFrame,
+      args: [chrome.runtime.getURL(`palette.html?mode=frame&tab=${tab.id}`)],
+    });
+  } catch {
+    // Restricted page. The popup is set only long enough to open it, so
+    // clicking the toolbar icon keeps going through onClicked.
+    await chrome.action.setPopup({ tabId: tab.id, popup: `palette.html?mode=popup&tab=${tab.id}` });
+    await chrome.action.openPopup({ windowId: tab.windowId }).catch((err) => console.error('Seek:', err));
+    await chrome.action.setPopup({ tabId: tab.id, popup: '' });
   }
-
-  await openPaletteWindow(tab);
-}
-
-async function openPaletteWindow(tab) {
-  const width = 720;
-  const height = 500;
-  const base = await chrome.windows.getLastFocused().catch(() => null);
-  const pos = base
-    ? {
-        left: Math.round(base.left + (base.width - width) / 2),
-        top: Math.round(base.top + (base.height - height) / 2.5),
-      }
-    : {};
-
-  const win = await chrome.windows.create({
-    url: chrome.runtime.getURL(`palette.html?mode=window&tab=${tab?.id ?? ''}`),
-    type: 'popup',
-    width,
-    height,
-    focused: true,
-    ...pos,
-  });
-  popupWindowId = win.id;
 }
 
 // Runs inside the web page (isolated world). Must be self-contained.

@@ -1,5 +1,6 @@
 {
   "manifest_version": 3,
+  "minimum_chrome_version": "127",
   "name": "Seek",
   "version": "1.0.0",
   "description": "Fuzzy search your tabs, bookmarks, history and Chrome settings from one keyboard shortcut.",

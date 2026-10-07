@@ -75,9 +75,11 @@ html, body {
   animation: open 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* Fallback popup window: the panel is the whole window. */
-[data-mode="window"] .backdrop { display: none; }
-[data-mode="window"] .panel {
+/* Toolbar popup (restricted pages): the panel is the whole popup. Chrome sizes
+   popups to their content, so give the document an explicit size. */
+[data-mode="popup"], [data-mode="popup"] body { width: 680px; height: 460px; }
+[data-mode="popup"] .backdrop { display: none; }
+[data-mode="popup"] .panel {
   inset: 0;
   left: 0; top: 0;
   transform: none;

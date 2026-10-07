@@ -20,5 +20,5 @@ Words are matched independently, so `gh flutter` finds `github.com/flutter/flutt
 
 ## How it works
 - On normal pages the palette is injected as an iframe overlay (an extension page, so the site can't read it or style it).
-- On pages extensions can't touch (`chrome://`, the New Tab page, Chrome Web Store) it opens as a small centered popup window instead.
+- On pages extensions can't touch (`chrome://`, the New Tab page, Chrome Web Store) it opens as the toolbar icon's popup instead, still inside the same window.
 - Nothing leaves your machine; there's no network access.
