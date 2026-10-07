@@ -11,7 +11,14 @@ const SELF_PREFIX = chrome.runtime.getURL('');
 const MAX_RESULTS = 60;
 
 document.documentElement.dataset.mode = MODE;
-if (MODE === 'page') document.title = 'New Tab';
+if (MODE === 'page') {
+  // Look like a browser's own new tab in the tab strip: a muted gray icon
+  // (browsers don't expose theirs to extensions) and the title it had before the swap.
+  const icon = Object.assign(document.createElement('link'), { rel: 'icon', href: 'icons/newtab.svg' });
+  document.head.append(icon);
+  document.title = 'New tab';
+  chrome.storage.session.get('newTabTitle').then(({ newTabTitle }) => newTabTitle && (document.title = newTabTitle));
+}
 const prefs = await loadPrefs();
 watchPrefs(prefs, (changes) => {
   if (changes.sites) updateHint();

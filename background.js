@@ -45,6 +45,8 @@ chrome.tabs.onCreated.addListener(async (tab) => {
   if (newTab === 'popup') {
     openPopup(tab);
   } else if (newTab === 'page') {
+    // Seek's page copies the real new tab's title ("New tab" in some browsers).
+    if (tab.title && !tab.title.includes('://')) await chrome.storage.session.set({ newTabTitle: tab.title });
     const url = chrome.runtime.getURL('palette.html?mode=page');
     await chrome.tabs.create({ url, index: tab.index, windowId: tab.windowId });
     chrome.tabs.remove(tab.id);
