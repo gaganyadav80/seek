@@ -179,8 +179,9 @@ function webSearchItem(text) {
 // ---------- ranking ----------
 
 // Results list open tabs first, then history, then bookmarks, then browser
-// settings, the best match first within each. Loose matches (the words only
-// as scattered letters) come after all of those, in the same order.
+// settings, the best match first within each. A title that is exactly the
+// query jumps ahead of every group; loose matches (the words only as scattered
+// letters) come after all of those, in the same order.
 const TYPE_ORDER = { tab: 0, history: 1, bookmark: 2, setting: 3 };
 
 // Within a type: recent tabs, and often and recently visited history, rank higher.
@@ -243,10 +244,12 @@ function rank({ keepSelection = false } = {}) {
       for (const item of state.items[type]) {
         if (!onSite(item)) continue;
         const m = scoreItem(tokens, item);
-        if (m) scored.push({ item, hl: m.titlePositions, urlHl: m.urlPositions, loose: !m.exact, score: m.score + boost(item, now) });
+        if (!m) continue;
+        const tier = item.title.trim().toLowerCase() === tokens.join(' ') ? 0 : m.exact ? 1 : 2;
+        scored.push({ item, hl: m.titlePositions, urlHl: m.urlPositions, tier, score: m.score + boost(item, now) });
       }
     }
-    scored.sort((a, b) => a.loose - b.loose || TYPE_ORDER[a.item.type] - TYPE_ORDER[b.item.type] || b.score - a.score);
+    scored.sort((a, b) => a.tier - b.tier || TYPE_ORDER[a.item.type] - TYPE_ORDER[b.item.type] || b.score - a.score);
 
     // In "All", show each URL once, as its first type (a tab, then history, then a bookmark).
     if (scope === 'all') {
@@ -272,10 +275,9 @@ function rank({ keepSelection = false } = {}) {
 
   state.results = results;
   const keep = prevKey ? results.findIndex((r) => r.item.key === prevKey) : -1;
-  // The web search row sits on top, but the highlight starts on the best match
-  // below it, so Enter still opens that; ↑ reaches the web search.
-  const first = results[0]?.item.type === 'search' && results.length > 1 ? 1 : 0;
-  state.selected = keep >= 0 ? keep : first;
+  // The highlight starts on the first row: the web (or site) search once
+  // something is typed, so Enter searches; ↓ reaches the matches.
+  state.selected = keep >= 0 ? keep : 0;
   renderResults();
 }
 
