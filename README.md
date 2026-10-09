@@ -18,7 +18,7 @@ Press **⌘⇧K** (Mac) or **Ctrl+Shift+K** (Windows/Linux) anywhere in your bro
 | ⌫ on empty | Leave site search, back to what you typed before Tab |
 | Esc | Leave site search with the field cleared, or close |
 
-Words are matched independently, so `gh flutter` finds `github.com/flutter/flutter`. Results list open tabs first, then history, then bookmarks, then browser settings, except that a page titled exactly what you typed comes first; loose matches, where your words only appear as scattered letters, come after all of those. Once you type, Enter searches the web; ↓ moves to the matches.
+Words are matched independently, so `gh flutter` finds `github.com/flutter/flutter`. Results list open tabs first, then history, then bookmarks, then browser settings, except that a page titled exactly what you typed (ignoring an unread count like "(119)") comes first; loose matches, where your words only appear as scattered letters, come after all of those. Once you type, Enter searches the web; ↓ moves to the matches.
 
 ## Site search
 Type a shortcut (`yt`, `gh`, `w`…) or the first letters of a site's name and press **Tab**. The site's name replaces the search icon as a pill in the site's color (picked from its favicon), results narrow to your tabs, bookmarks and history on that site, and Enter searches the site itself. Browsers don't let extensions read their own site search list, so manage yours in Seek settings, using the same `%s` URL format as your browser's site search settings.

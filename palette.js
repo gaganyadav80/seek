@@ -180,8 +180,9 @@ function webSearchItem(text) {
 
 // Results list open tabs first, then history, then bookmarks, then browser
 // settings, the best match first within each. A title that is exactly the
-// query jumps ahead of every group; loose matches (the words only as scattered
-// letters) come after all of those, in the same order.
+// query (ignoring a leading unread count like "(119) ") jumps ahead of every
+// group; loose matches (the words only as scattered letters) come after all
+// of those, in the same order.
 const TYPE_ORDER = { tab: 0, history: 1, bookmark: 2, setting: 3 };
 
 // Within a type: recent tabs, and often and recently visited history, rank higher.
@@ -245,7 +246,7 @@ function rank({ keepSelection = false } = {}) {
         if (!onSite(item)) continue;
         const m = scoreItem(tokens, item);
         if (!m) continue;
-        const tier = item.title.trim().toLowerCase() === tokens.join(' ') ? 0 : m.exact ? 1 : 2;
+        const tier = item.title.replace(/^\(\d+\+?\)\s*/, '').trim().toLowerCase() === tokens.join(' ') ? 0 : m.exact ? 1 : 2;
         scored.push({ item, hl: m.titlePositions, urlHl: m.urlPositions, tier, score: m.score + boost(item, now) });
       }
     }
