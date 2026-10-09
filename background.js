@@ -5,7 +5,10 @@
 
 import { DEFAULT_PREFS, isNewTab } from './settings.js';
 
+// The shortcut does nothing on a new tab page, the browser's or Seek's own.
 chrome.commands.onCommand.addListener((command, tab) => {
+  const url = tab?.pendingUrl || tab?.url;
+  if (isNewTab(url) || url?.startsWith(chrome.runtime.getURL('palette.html'))) return;
   if (command === 'open-palette') openPalette(tab);
 });
 
