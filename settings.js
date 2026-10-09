@@ -65,6 +65,7 @@ export const DEFAULT_PREFS = {
   sources: { tab: true, bookmark: true, history: true, setting: true }, // what the palette reads
   enterOpens: 'new', // 'new' tab, or 'current' tab (⌘↵ does the other)
   webSearch: '', // keyword of a site to search the web with; '' = the browser's default engine
+  quietOnNewTab: true, // the shortcut does nothing on a new tab page (the browser's or Seek's)
   newTab: 'off', // on a new tab: 'off', 'popup' (open Seek on it) or 'page' (swap it for Seek's page)
   style: 'evolved', // how Seek looks; the only style for now, so its settings row is hidden
 };

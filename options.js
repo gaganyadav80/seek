@@ -29,6 +29,7 @@ function renderControls() {
   for (const box of switches) box.checked = prefs.sources[box.dataset.source] !== false;
   $('enter-opens').value = prefs.enterOpens;
   $('new-tab').value = prefs.newTab;
+  $('quiet-new-tab').checked = prefs.quietOnNewTab;
   $('style').value = prefs.style;
   $('web-search').replaceChildren(
     new Option('Browser default', ''),
@@ -45,6 +46,7 @@ for (const box of switches) {
 }
 $('enter-opens').addEventListener('change', (e) => chrome.storage.sync.set({ enterOpens: e.target.value }));
 $('new-tab').addEventListener('change', (e) => chrome.storage.sync.set({ newTab: e.target.value }));
+$('quiet-new-tab').addEventListener('change', (e) => chrome.storage.sync.set({ quietOnNewTab: e.target.checked }));
 $('web-search').addEventListener('change', (e) => chrome.storage.sync.set({ webSearch: e.target.value }));
 $('style').addEventListener('change', (e) => {
   chrome.storage.sync.set({ style: e.target.value });
