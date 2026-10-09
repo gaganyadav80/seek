@@ -1,7 +1,7 @@
 // Run: node --test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { scoreItem, siteFor } from './fuzzy.js';
+import { scoreItem, siteFor, titleCoverage } from './fuzzy.js';
 import { SITES, validateSite, shortcutKeys, sitesUpdate, isNewTab, displayUrl } from './settings.js';
 import { dominantColor, pillColors, contrast } from './color.js';
 
@@ -89,4 +89,11 @@ test('marks whole-word matches as exact and scattered letters as loose', () => {
   assert.equal(scoreItem(['stack'], { title: 'Approximate string matching - Wikipedia', displayUrl: 'en.wikipedia.org/wiki/Approximate_string_matching' }).exact, false);
   assert.equal(scoreItem(['gh', 'flutter'], gh).exact, false, 'gh only as letters of github');
   assert.equal(scoreItem(['git', 'flutter'], gh).exact, true);
+});
+
+test('title coverage ignores unread counts and favors the closer title', () => {
+  assert.equal(titleCoverage('youtube', '(120) YouTube'), 1);
+  assert.equal(titleCoverage('gmail', '(99+) Gmail'), 1);
+  assert.ok(titleCoverage('youtub', 'YouTube') > titleCoverage('youtub', 'YouTube Music'));
+  assert.equal(titleCoverage('music', 'YouTube'), 0);
 });

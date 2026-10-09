@@ -99,6 +99,12 @@ export function scoreItem(tokens, item) {
   return { score: total, exact, titlePositions, urlPositions };
 }
 
+/** Share of the title (minus a leading unread count like "(119) ") that the query covers; 0 if it isn't in the title. */
+export function titleCoverage(query, title) {
+  const t = (title || '').replace(/^\(\d+\+?\)\s*/, '').trim().toLowerCase();
+  return t.includes(query) ? query.length / t.length : 0;
+}
+
 /** Site whose shortcut, or 2+ letters of its name, is the whole query. */
 export function siteFor(query, sites) {
   const q = query.trim().toLowerCase();

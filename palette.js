@@ -1,4 +1,4 @@
-import { scoreItem, siteFor } from './fuzzy.js';
+import { scoreItem, siteFor, titleCoverage } from './fuzzy.js';
 import { dominantColor, pillColors } from './color.js';
 import { CHROME_PAGES, loadPrefs, watchPrefs, faviconUrl, isNewTab, displayUrl } from './settings.js';
 
@@ -179,9 +179,9 @@ function webSearchItem(text) {
 // ---------- ranking ----------
 
 // Results list open tabs first, then history, then bookmarks, then browser
-// settings, the best match first within each. A title that is exactly the
-// query (ignoring a leading unread count like "(119) ") jumps ahead of every
-// group; loose matches (the words only as scattered letters) come after all
+// settings, the best match first within each. A title the query nearly
+// covers ("youtub" → "YouTube") jumps ahead of every group, the closest
+// first; loose matches (the words only as scattered letters) come after all
 // of those, in the same order.
 const TYPE_ORDER = { tab: 0, history: 1, bookmark: 2, setting: 3 };
 
@@ -246,11 +246,13 @@ function rank({ keepSelection = false } = {}) {
         if (!onSite(item)) continue;
         const m = scoreItem(tokens, item);
         if (!m) continue;
-        const tier = item.title.replace(/^\(\d+\+?\)\s*/, '').trim().toLowerCase() === tokens.join(' ') ? 0 : m.exact ? 1 : 2;
-        scored.push({ item, hl: m.titlePositions, urlHl: m.urlPositions, tier, score: m.score + boost(item, now) });
+        // ponytail: fixed 60% cutoff, tune if short queries jump too eagerly.
+        const cover = titleCoverage(tokens.join(' '), item.title);
+        const tier = cover >= 0.6 ? 0 : m.exact ? 1 : 2;
+        scored.push({ item, hl: m.titlePositions, urlHl: m.urlPositions, tier, cover: tier ? 0 : cover, score: m.score + boost(item, now) });
       }
     }
-    scored.sort((a, b) => a.tier - b.tier || TYPE_ORDER[a.item.type] - TYPE_ORDER[b.item.type] || b.score - a.score);
+    scored.sort((a, b) => a.tier - b.tier || b.cover - a.cover || TYPE_ORDER[a.item.type] - TYPE_ORDER[b.item.type] || b.score - a.score);
 
     // In "All", show each URL once, as its first type (a tab, then history, then a bookmark).
     if (scope === 'all') {
