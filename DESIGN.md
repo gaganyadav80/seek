@@ -2,8 +2,8 @@
 name: Seek
 description: A keyboard-first command bar over tabs, bookmarks, history and browser settings.
 colors:
-  match-blue-dark: "#8ea3ff"
-  match-blue-light: "#3554d1"
+  match-blue-dark: "#6f8cff"
+  match-blue-light: "#1f44e0"
   charcoal-canvas: "#09090a"
   charcoal-surface: "#131315"
   charcoal-raised: "#2a2a2e"

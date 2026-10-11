@@ -52,7 +52,9 @@ chrome.tabs.onCreated.addListener(async (tab) => {
   const { newTab } = await chrome.storage.sync.get({ newTab: DEFAULT_PREFS.newTab });
   if (newTab === 'popup') {
     openPopup(tab);
-  } else if (newTab === 'page') {
+  } else if (newTab === 'page' && !tab.incognito) {
+    // Not in private windows: Seek's page can't load there, so the browser
+    // would open it as a regular tab titled "New Private Window".
     // Seek's page copies the real new tab's title ("New tab" in some browsers).
     if (tab.title && !tab.title.includes('://')) await chrome.storage.session.set({ newTabTitle: tab.title });
     const url = chrome.runtime.getURL('palette.html?mode=page');

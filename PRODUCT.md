@@ -29,7 +29,7 @@ A single command bar over everything the browser already knows (tabs, bookmarks,
 ## Brand Commitments
 - Browser-neutral: no browser product names in UI text, README or store copy. Seek runs in any Chromium browser and may come to Firefox later.
 - Icons are Phosphor (MIT), inlined.
-- One accent hue: blue marks fuzzy-matched letters (#8ea3ff dark, #3554d1 light).
+- One accent hue: blue marks fuzzy-matched letters (#6f8cff dark, #1f44e0 light).
 - Over a web page the command bar opens with the site search tap (no glow) while the page dims and blurs in; it closes instantly, and the toolbar dropdown and new tab don't animate. The site search entry animation (tap, tint, glow) stays.
 
 ## Evidence on Hand
