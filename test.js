@@ -1,5 +1,5 @@
-// Run: node --test
-import { test } from 'node:test';
+// Run: npm test
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { scoreItem, siteFor, titleCoverage } from './fuzzy.js';
 import { SITES, validateSite, shortcutKeys, sitesUpdate, isNewTab, displayUrl } from './settings.js';

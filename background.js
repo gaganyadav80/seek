@@ -8,6 +8,8 @@ import { DEFAULT_PREFS, isNewTab } from './settings.js';
 // With "Ignore on new tab pages" on, the shortcut does nothing on a new tab
 // page, the browser's or Seek's own.
 chrome.commands.onCommand.addListener(async (command, tab) => {
+  // Opening the side panel needs the shortcut's user gesture, so no await before it.
+  if (command === 'open-notes') return chrome.sidePanel.open({ windowId: tab.windowId });
   if (command !== 'open-palette') return;
   const url = tab?.pendingUrl || tab?.url;
   if (isNewTab(url) || url?.startsWith(chrome.runtime.getURL('palette.html'))) {

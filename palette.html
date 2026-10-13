@@ -6,12 +6,17 @@
        extension icon on purpose: the browser shows that one until the page
        has loaded, so any other icon would visibly switch a moment later. -->
   <title>New tab</title>
-  <link rel="icon" href="icons/16.png" sizes="16x16">
-  <link rel="icon" href="icons/32.png" sizes="32x32">
+  <link rel="icon" href="/icons/16.png" sizes="16x16">
+  <link rel="icon" href="/icons/32.png" sizes="32x32">
   <link rel="stylesheet" href="palette.css">
 </head>
 <body>
   <div class="backdrop" id="backdrop"></div>
+  <!-- New tab only: the mark, large and dim behind the bar, under a light from the top left. -->
+  <img class="stage-logo" src="/brand/seek-monochrome.webp" alt="" loading="lazy" decoding="async">
+  <div class="stage-light" aria-hidden="true"></div>
+  <div class="stage-shine" aria-hidden="true"></div>
+  <div class="stage-tint" aria-hidden="true"></div>
   <div class="wave" aria-hidden="true"></div>
 
   <div class="panel" role="dialog" aria-label="Search tabs, bookmarks, history and settings">

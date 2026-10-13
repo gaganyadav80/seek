@@ -21,7 +21,7 @@ A single command bar over everything the browser already knows (tabs, bookmarks,
 - Keyboard flow: ↑ ↓ / Ctrl+N Ctrl+P move, ↵ opens, ⌘↵ opens the other way, Tab cycles filters (All, Tabs, Bookmarks, History, Settings), Tab on a site shortcut enters site search, ⌫ on empty or Esc leaves it, Esc closes.
 
 ## Capabilities and Constraints
-- Manifest V3, plain HTML/CSS/JS, no build step, no dependencies.
+- Manifest V3, plain HTML/CSS/JS built with Vite into `dist/`. Static files (manifest, icons, brand) live in `public/`.
 - No network requests; only settings leave the machine, through the browser's own profile sync. Anything the UI needs (fonts, icons) ships inside the extension.
 - Light, dark or system theme; dark is the default.
 - Results highlight fuzzy-matched letters. Site search shows the site's name as a pill in the site's color, taken from its favicon.

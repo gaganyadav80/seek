@@ -154,6 +154,14 @@ function loadSettings() {
     displayUrl: 'Theme, shortcut, site search',
     keywords: 'seek options preferences',
   });
+  state.items.setting.unshift({
+    type: 'setting',
+    key: 'set:notes',
+    action: 'notes',
+    title: 'Open notes',
+    displayUrl: 'Quick notes in the side panel',
+    keywords: 'notes notepad sidebar side panel write',
+  });
 }
 
 // Reads only the sources turned on in settings; one that's off isn't read at all.
@@ -288,6 +296,7 @@ function rank({ keepSelection = false } = {}) {
 
 // Phosphor glyphs drawn by palette.css (each style picks its weight).
 function iconFor(item) {
+  if (item.action === 'notes') return glyph('note');
   if (item.type === 'setting') return glyph('gear');
   if (item.type === 'search' && !item.url) return glyph('search');
   const img = document.createElement('img');
@@ -515,6 +524,13 @@ async function activate(index, { here = false } = {}) {
   here = fill ? !here : here !== (prefs.enterOpens === 'current');
   const item = r.item;
   const origin = state.originTab;
+
+  // The side panel opens only inside the keypress or click, so nothing is awaited first.
+  if (item.action === 'notes') {
+    if (origin) chrome.sidePanel.open({ windowId: origin.windowId }).catch((err) => console.error('Seek:', err));
+    if (MODE !== 'page') close(); // Seek's own new tab page stays
+    return;
+  }
 
   try {
     if (item.type === 'tab') {

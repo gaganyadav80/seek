@@ -163,7 +163,7 @@ A neutral charcoal and mist palette with a single blue voice, plus color that ea
 - **Type Dots** (tab, bookmark, history and setting dots, one pair per theme): the small dot beside each result's type label.
 
 ### Neutral
-- **Charcoal Canvas** and **Mist Canvas**: the new tab page's ground in dark and light, lit faintly from above.
+- **Charcoal Canvas** and **Mist Canvas**: the new tab page's ground in dark and light. Mist is lit faintly from above. In dark the ground goes near-black blue-grey (#06070b) and the Seek mark (brand/seek-monochrome.webp, cropped to the mark, scaled only, never reshaped) fills the full height behind the bar, a little right of center, at 31% opacity, under a haze from the top left with a soft highlight where it lands on the S's top curve, shadow toward the top right corner, the middle right and the floor, and a faint blue-grey cast over all of it.
 - **Charcoal Surface** and **Mist Surface**: the bar, the dropdown and the settings groups.
 - **Charcoal Raised**: the settings page's theme-switch thumb and open menus in dark. Keycaps use their own top-lit gradient (#2c2c30 to #222225 in dark).
 - **Pale Ink / Graphite Ink** for text, with Strong for the query, selected titles and keys, Muted for addresses and footer labels, and Faint for the placeholder, the search icon and type labels.
