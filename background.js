@@ -9,7 +9,10 @@ import { DEFAULT_PREFS, isNewTab } from './settings.js';
 // page, the browser's or Seek's own.
 chrome.commands.onCommand.addListener(async (command, tab) => {
   // Opening the side panel needs the shortcut's user gesture, so no await before it.
-  if (command === 'open-notes') return chrome.sidePanel.open({ windowId: tab.windowId });
+  if (command === 'open-notes') {
+    const open = notesPanels.has(tab.windowId);
+    return chrome.sidePanel[open ? 'close' : 'open']({ windowId: tab.windowId });
+  }
   if (command !== 'open-palette') return;
   const url = tab?.pendingUrl || tab?.url;
   if (isNewTab(url) || url?.startsWith(chrome.runtime.getURL('palette.html'))) {
@@ -17,6 +20,17 @@ chrome.commands.onCommand.addListener(async (command, tab) => {
     if (quietOnNewTab) return;
   }
   openPalette(tab);
+});
+
+// Each open notes panel holds a port named after its window, so the notes
+// shortcut can tell, without awaiting, whether to open the panel or close it.
+// The panel closes itself when it has focus, since the shortcut stays there.
+const notesPanels = new Map();
+chrome.runtime.onConnect.addListener((port) => {
+  if (!port.name.startsWith('notes:')) return;
+  const windowId = Number(port.name.slice(6));
+  notesPanels.set(windowId, port);
+  port.onDisconnect.addListener(() => notesPanels.get(windowId) === port && notesPanels.delete(windowId));
 });
 
 chrome.action.onClicked.addListener((tab) => openPalette(tab));

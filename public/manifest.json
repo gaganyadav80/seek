@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "minimum_chrome_version": "127",
+  "minimum_chrome_version": "141",
   "name": "Seek",
   "version": "1.0.0",
   "description": "Fuzzy search your tabs, bookmarks, history and browser settings from one keyboard shortcut.",
@@ -20,7 +20,7 @@
     },
     "open-notes": {
       "suggested_key": { "default": "Ctrl+Shift+Y", "mac": "Command+Shift+Y" },
-      "description": "Open notes"
+      "description": "Toggle notes"
     }
   },
   "web_accessible_resources": [

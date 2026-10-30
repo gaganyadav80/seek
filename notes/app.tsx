@@ -9,6 +9,7 @@ import type { Meta } from './db';
 import { formatDate, type PMNode } from './derive';
 import { search, type Hit, type Range } from './search';
 import { ICONS } from './icons';
+import { matchesShortcut } from './shortcut';
 import type { NoteEditor } from './editor';
 
 const SAVE_DELAY = 400;
@@ -54,6 +55,23 @@ async function flush() {
 
 addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flush());
 addEventListener('pagehide', () => void flush());
+
+// Open panels keep a port to the service worker, which is how the notes
+// shortcut knows to close rather than open. The port drops when the worker
+// goes idle, so reconnect, which wakes it back up.
+chrome.windows.getCurrent().then(async ({ id }) => {
+  const connect = () => chrome.runtime.connect({ name: `notes:${id}` }).onDisconnect.addListener(connect);
+  connect();
+
+  // With focus in the panel the shortcut never reaches the browser, so handle it here.
+  const shortcut = (await chrome.commands.getAll()).find((c) => c.name === 'open-notes')?.shortcut || '';
+  addEventListener('keydown', async (e) => {
+    if (!matchesShortcut(e, shortcut)) return;
+    e.preventDefault();
+    await flush();
+    chrome.sidePanel.close({ windowId: id! });
+  }, true);
+});
 
 // ---------- highlighted text ----------
 

@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto';
 import { test, assert } from 'vitest';
 import { derive, formatDate, UNTITLED, type PMNode } from './derive';
 import { search, snippet } from './search';
+import { matchesShortcut } from './shortcut';
 import { save, listMeta, getDoc, getTexts, softDelete, restore, purge, type Meta } from './db';
 
 const p = (text: string): PMNode => ({ type: 'paragraph', content: text ? [{ type: 'text', text }] : [] });
@@ -88,4 +89,15 @@ test('save, bin, restore, delete permanently, and empty notes are removed', asyn
   await save('n2', doc(p('draft')), 1);
   assert.strictEqual(await save('n2', doc(p('')), 1), null);
   assert.deepEqual(await listMeta(), []);
+});
+
+test('the notes shortcut matches in both shortcut formats', () => {
+  const key = (code: string, mods: Partial<KeyboardEvent> = {}) =>
+    ({ key: code.slice(-1).toLowerCase(), code, ctrlKey: false, altKey: false, shiftKey: false, metaKey: false, ...mods });
+  assert.isTrue(matchesShortcut(key('KeyY', { shiftKey: true, metaKey: true }), '⇧⌘Y'));
+  assert.isTrue(matchesShortcut(key('KeyY', { shiftKey: true, ctrlKey: true }), 'Ctrl+Shift+Y'));
+  assert.isFalse(matchesShortcut(key('KeyY', { metaKey: true }), '⇧⌘Y'));
+  assert.isFalse(matchesShortcut(key('KeyY', { shiftKey: true, metaKey: true, altKey: true }), '⇧⌘Y'));
+  assert.isFalse(matchesShortcut(key('KeyU', { shiftKey: true, metaKey: true }), '⇧⌘Y'));
+  assert.isFalse(matchesShortcut(key('KeyY'), ''));
 });
