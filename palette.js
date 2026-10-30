@@ -1,4 +1,4 @@
-import { scoreItem, siteFor, titleCoverage } from './fuzzy.js';
+import { scoreItem, siteFor, titleCoverage, sitesFromHistory } from './fuzzy.js';
 import { dominantColor, pillColors } from './color.js';
 import { CHROME_PAGES, loadPrefs, watchPrefs, faviconUrl, isNewTab, displayUrl } from './settings.js';
 
@@ -43,12 +43,12 @@ const SCOPES = [
 ];
 const on = (type) => prefs.sources[type] !== false; // source turned on in settings
 const visibleScopes = () => SCOPES.filter((s) => s.id === 'all' || on(s.id));
-const KIND_LABEL = { tab: 'Tab', bookmark: 'Bookmark', history: 'History', setting: 'Setting', search: 'Web', site: 'Site' };
+const KIND_LABEL = { tab: 'Tab', bookmark: 'Bookmark', history: 'History', setting: 'Setting', search: 'Web', site: 'Site', domain: 'Site' };
 
 const state = {
   query: '',
   scope: 'all',
-  items: { tab: [], bookmark: [], history: [], setting: [] },
+  items: { tab: [], domain: [], bookmark: [], history: [], setting: [] }, // domain: sites seen in history
   results: [],
   selected: 0,
   originTab: null,
@@ -137,6 +137,15 @@ async function loadHistory() {
       visitCount: h.visitCount || 0,
       lastVisitTime: h.lastVisitTime || 0,
     }));
+  state.items.domain = sitesFromHistory(state.items.history).map((s) => ({
+    type: 'domain',
+    key: 'd:' + s.host,
+    title: s.name,
+    url: s.url,
+    displayUrl: s.host,
+    visitCount: s.visitCount,
+    lastVisitTime: s.lastVisitTime,
+  }));
 }
 
 function loadSettings() {
@@ -168,7 +177,7 @@ function loadSettings() {
 
 // Reads only the sources turned on in settings; one that's off isn't read at all.
 function loadSources() {
-  for (const type in state.items) if (!on(type)) state.items[type] = [];
+  for (const type in state.items) if (!on(type === 'domain' ? 'history' : type)) state.items[type] = [];
   renderScopes();
   if (on('setting')) loadSettings();
   // Tabs first so the list appears instantly; bookmarks and history fill in
@@ -190,12 +199,14 @@ function webSearchItem(text) {
 
 // ---------- ranking ----------
 
-// Results list open tabs first, then history, then bookmarks, then browser
-// settings, the best match first within each. A title the query nearly
+// Results list open tabs first, then sites, then history, then bookmarks, then
+// browser settings, the best match first within each. A title the query nearly
 // covers ("youtub" → "YouTube") jumps ahead of every group, the closest
 // first; loose matches (the words only as scattered letters) come after all
 // of those, in the same order.
-const TYPE_ORDER = { tab: 0, history: 1, bookmark: 2, setting: 3 };
+const TYPE_ORDER = { tab: 0, domain: 1, history: 2, bookmark: 3, setting: 4 };
+// Rows per type in "All"; its filter tab lists the rest.
+const ALL_LIMIT = { tab: 2, domain: 1, history: 3, bookmark: 2, setting: 2 };
 
 // Within a type: recent tabs, and often and recently visited history, rank higher.
 function boost(item, now) {
@@ -204,6 +215,7 @@ function boost(item, now) {
       const hours = (now - item.lastAccessed) / 3.6e6;
       return Math.max(0, 40 - hours * 4);
     }
+    case 'domain':
     case 'history': {
       const days = (now - item.lastVisitTime) / 8.64e7;
       return Math.min(Math.log2(1 + item.visitCount) * 12, 80) + Math.max(0, 30 - days);
@@ -250,14 +262,15 @@ function rank({ keepSelection = false } = {}) {
   if (!tokens.length) {
     results = emptyQueryResults(scope, onSite).slice(0, MAX_RESULTS).map((item) => ({ item, hl: null }));
   } else {
-    const pools = scope === 'all' ? ['tab', 'bookmark', 'setting', 'history'] : [scope];
+    const pools = scope === 'all' ? ['tab', 'domain', 'bookmark', 'setting', 'history'] : [scope];
     const now = Date.now();
     const scored = [];
     for (const type of pools) {
       for (const item of state.items[type]) {
         if (!onSite(item)) continue;
-        const m = scoreItem(tokens, item);
-        if (!m) continue;
+        // A site row matches on its host only ("music" → music.youtube.com before "Flow Music"), and only whole words.
+        const m = scoreItem(tokens, type === 'domain' ? { displayUrl: item.displayUrl } : item);
+        if (!m || (type === 'domain' && !m.exact)) continue;
         // ponytail: fixed 60% cutoff, tune if short queries jump too eagerly.
         const cover = titleCoverage(tokens.join(' '), item.title);
         const tier = cover >= 0.6 ? 0 : m.exact ? 1 : 2;
@@ -266,14 +279,20 @@ function rank({ keepSelection = false } = {}) {
     }
     scored.sort((a, b) => a.tier - b.tier || b.cover - a.cover || TYPE_ORDER[a.item.type] - TYPE_ORDER[b.item.type] || b.score - a.score);
 
-    // In "All", show each URL once, as its first type (a tab, then history, then a bookmark).
+    // In "All", history and bookmarks skip a URL already listed (a tab or a site's home page,
+    // so it never shows a stale title); every open tab and site is listed. Each type keeps
+    // only its best few, except in a site search, which is all one site.
     if (scope === 'all') {
       const seen = new Set();
+      const taken = {};
       results = [];
       for (const r of scored) {
+        const { type } = r.item;
         const u = normalizeUrl(r.item.url);
-        if (seen.has(u)) continue;
+        if (seen.has(u) && (type === 'history' || type === 'bookmark')) continue;
+        if (!site && (taken[type] || 0) >= ALL_LIMIT[type]) continue;
         seen.add(u);
+        taken[type] = (taken[type] || 0) + 1;
         results.push(r);
         if (results.length >= MAX_RESULTS) break;
       }
@@ -358,7 +377,7 @@ function renderRow(r, i) {
   const text = document.createElement('div');
   text.className = 'text';
   text.append(highlighted(r.item.title, r.hl, 'title'));
-  if (r.item.displayUrl) {
+  if (r.item.displayUrl && r.item.displayUrl !== r.item.title) { // untitled pages already show the URL
     text.append(highlighted(r.item.displayUrl, r.urlHl, 'url'));
   }
 

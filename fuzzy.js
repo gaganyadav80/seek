@@ -38,7 +38,9 @@ export function matchToken(token, text) {
   if (!text) return null;
   const lower = text.toLowerCase();
 
-  const idx = lower.indexOf(token);
+  let idx = lower.indexOf(token);
+  // Prefer a word start ("music" in "musicals | Music") over the first hit.
+  for (let j = idx; j !== -1; j = lower.indexOf(token, j + 1)) if (isBoundary(text, j)) { idx = j; break; }
   if (idx !== -1) {
     let score = 100 + token.length * 12;
     if (idx === 0) score += 70;
@@ -111,4 +113,32 @@ export function siteFor(query, sites) {
   if (!q || /\s/.test(q)) return null;
   return sites.find((s) => s.keyword === q) ||
     (q.length >= 2 && sites.find((s) => s.name.toLowerCase().startsWith(q))) || null;
+}
+
+/**
+ * One row per site in history, named by the suffix its page titles share
+ * ("Fever | YouTube Music" → "YouTube Music"), else by its host.
+ */
+// ponytail: suffix-vote heuristic, read the site's manifest/og:site_name if names come out wrong.
+export function sitesFromHistory(history) {
+  const hosts = new Map();
+  for (const h of history) {
+    let u;
+    try { u = new URL(h.url); } catch { continue; }
+    if (!/^https?:$/.test(u.protocol)) continue;
+    const host = u.host.replace(/^www\./, '');
+    let s = hosts.get(host);
+    if (!s) hosts.set(host, (s = { host, url: u.origin + '/', visitCount: 0, lastVisitTime: 0, names: new Map() }));
+    s.visitCount += h.visitCount || 0;
+    s.lastVisitTime = Math.max(s.lastVisitTime, h.lastVisitTime || 0);
+    const title = (h.title || '').replace(/^\(\d+\+?\)\s*/, '').trim();
+    const parts = title.split(/\s[|–—·-]\s/);
+    // A shared suffix names the site; a home page's whole title does too.
+    const name = parts.length > 1 ? parts.pop().trim() : u.pathname === '/' ? title : '';
+    if (name) s.names.set(name, (s.names.get(name) || 0) + (u.pathname === '/' ? 2 : 1));
+  }
+  return [...hosts.values()].map(({ names, ...s }) => {
+    const [name, votes] = [...names].reduce((a, b) => (b[1] > a[1] ? b : a), ['', 0]);
+    return { ...s, name: votes >= 2 ? name : s.host };
+  });
 }

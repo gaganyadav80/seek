@@ -365,6 +365,16 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   .scope:active, .row:active { transform: none; }
 }
+/* A hairline after the open tabs: above it switches, below it opens something new. */
+.row[data-type="tab"] + .row:not([data-type="tab"]) { position: relative; margin-top: 9px; }
+.row[data-type="tab"] + .row:not([data-type="tab"])::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 12px;
+  right: 12px;
+  border-top: 1px solid var(--line);
+}
 .row.selected { background: var(--selected); box-shadow: inset 0 0 0 1px var(--sel-ring); }
 .row.selected .title { color: var(--ink-strong); }
 
@@ -406,7 +416,8 @@ img.icon { border-radius: 3px; }
 }
 .row[data-type="tab"] .kind { --dot: var(--tab); }
 .row[data-type="bookmark"] .kind { --dot: var(--bookmark); }
-.row[data-type="history"] .kind { --dot: var(--history); }
+.row[data-type="history"] .kind,
+.row[data-type="domain"] .kind { --dot: var(--history); }
 .row[data-type="setting"] .kind { --dot: var(--setting); }
 .row[data-type="search"] .kind::before,
 .row[data-type="site"] .kind::before { display: none; }

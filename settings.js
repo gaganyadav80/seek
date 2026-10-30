@@ -78,6 +78,8 @@ export const DEFAULT_PREFS = {
 export function displayUrl(url) {
   try {
     const u = new URL(url);
+    // Tracking tags are noise to read, and to match ("open" hit every utm_source=opensearch).
+    for (const k of [...u.searchParams.keys()]) if (k.startsWith('utm_')) u.searchParams.delete(k);
     if (/^https?:$/.test(u.protocol)) return (u.host.replace(/^www\./, '') + u.pathname + u.search + u.hash).replace(/\/$/, '');
     return u.protocol === 'file:' ? url : url.replace(/^[a-z-]+:\/\//, '');
   } catch {

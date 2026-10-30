@@ -1,7 +1,7 @@
 // Run: npm test
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { scoreItem, siteFor, titleCoverage } from './fuzzy.js';
+import { scoreItem, siteFor, titleCoverage, sitesFromHistory, matchToken } from './fuzzy.js';
 import { SITES, validateSite, shortcutKeys, sitesUpdate, isNewTab, displayUrl } from './settings.js';
 import { dominantColor, pillColors, contrast } from './color.js';
 
@@ -82,6 +82,7 @@ test('shows URLs without the scheme, and never the browser\'s name', () => {
   assert.equal(displayUrl('file:///Users/me/notes.html'), 'file:///Users/me/notes.html');
   assert.equal(displayUrl('about:blank'), 'about:blank');
   assert.equal(displayUrl(undefined), '');
+  assert.equal(displayUrl('https://music.youtube.com/search?q=after+hours&utm_source=opensearch'), 'music.youtube.com/search?q=after+hours');
 });
 
 test('marks whole-word matches as exact and scattered letters as loose', () => {
@@ -96,4 +97,22 @@ test('title coverage ignores unread counts and favors the closer title', () => {
   assert.equal(titleCoverage('gmail', '(99+) Gmail'), 1);
   assert.ok(titleCoverage('youtub', 'YouTube') > titleCoverage('youtub', 'YouTube Music'));
   assert.equal(titleCoverage('music', 'YouTube'), 0);
+});
+
+test('sites from history are named by their shared title suffix', () => {
+  const sites = sitesFromHistory([
+    { url: 'https://music.youtube.com/', title: 'O Yaara | YouTube Music', visitCount: 3 },
+    { url: 'https://music.youtube.com/watch?v=1', title: 'Fever | YouTube Music', visitCount: 2 },
+    { url: 'https://www.github.com/flutter/flutter', title: 'flutter/flutter: Flutter makes apps' },
+    { url: 'chrome://settings' },
+  ]);
+  assert.deepEqual(sites.map((s) => [s.host, s.name, s.url]), [
+    ['music.youtube.com', 'YouTube Music', 'https://music.youtube.com/'],
+    ['github.com', 'github.com', 'https://www.github.com/'],
+  ]);
+  assert.equal(sites[0].visitCount, 5);
+});
+
+test('a whole-word hit beats an earlier mid-word one', () => {
+  assert.deepEqual(matchToken('music', 'Gamusic | Music').positions, [10, 11, 12, 13, 14]);
 });
