@@ -66,6 +66,9 @@ html, body {
 }
 ::selection { background: var(--selection); color: var(--ink-strong); }
 
+/* Over a web page Seek stays invisible until it's ready to tap in (palette.js). */
+:root[data-mode="frame"]:not([data-open]) body { opacity: 0; }
+
 /* Over a web page the bar opens with the site search tap (below, no glow)
    while this scrim and the page blur (background.js) fade in. It closes
    instantly; the dropdown and the new tab don't animate. */

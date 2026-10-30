@@ -24,12 +24,14 @@ watchPrefs(prefs, (changes) => {
   if (changes.enterOpens) renderFooter();
   if (changes.webSearch) rank({ keepSelection: true });
 });
-// Seek shows now that the theme is set. Over a web page it taps in while the
-// page blurs in (the page does that part, so tell it when).
-if (MODE === 'frame') {
+// Over a web page Seek taps in while the page blurs in (the page does that
+// part, so tell it when). Resolves once the tap is over.
+let opened = Promise.resolve();
+function tapIn() {
+  document.documentElement.dataset.open = '';
   document.body.classList.add('opening');
-  setTimeout(() => document.body.classList.remove('opening'), 300);
   parent.postMessage('seek:open', '*');
+  return new Promise((done) => setTimeout(() => (document.body.classList.remove('opening'), done()), 300));
 }
 
 const SCOPES = [
@@ -169,11 +171,13 @@ function loadSources() {
   for (const type in state.items) if (!on(type)) state.items[type] = [];
   renderScopes();
   if (on('setting')) loadSettings();
-  // Tabs first so the list appears instantly; bookmarks and history fill in after.
-  (on('tab') ? loadTabs() : Promise.resolve()).then(() => rank());
+  // Tabs first so the list appears instantly; bookmarks and history fill in
+  // after, once Seek has finished opening so the re-render can't drop its frames.
   Promise.all([on('bookmark') && loadBookmarks(), on('history') && loadHistory()])
     .catch((err) => console.error('Seek:', err))
+    .then(() => opened)
     .then(() => rank({ keepSelection: true }));
+  return (on('tab') ? loadTabs() : Promise.resolve()).then(() => rank());
 }
 
 // "Search the web" row: Chrome's default engine, or the site picked in settings.
@@ -741,5 +745,14 @@ if (!PREVIEW) $q.focus();
     renderFooter(); // hints depend on whether that's an empty new tab
   })
   .catch(() => {});
-loadSources();
+const firstRows = loadSources();
+// After a long idle the first paint is slow, and an animation started before it
+// skips its first frames. So wait for the first rows and their icons (capped,
+// Seek must always show), then start the tap on a fresh frame.
+if (MODE === 'frame') {
+  const icons = firstRows.then(() => Promise.all([...$results.querySelectorAll('img')].slice(0, 10).map((img) => img.decode().catch(() => {}))));
+  opened = Promise.race([icons.catch(() => {}), new Promise((r) => setTimeout(r, 300))])
+    .then(() => new Promise(requestAnimationFrame))
+    .then(tapIn);
+}
 if (MODE === 'page') loadStage().catch((err) => console.error('Seek:', err));
