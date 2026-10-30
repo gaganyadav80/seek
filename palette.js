@@ -514,6 +514,118 @@ function renderFooter() {
   );
 }
 
+// ---------- new tab page: bookmarks bar and tab groups ----------
+
+const $bar = document.getElementById('bookmarks-bar');
+const $groups = document.getElementById('groups');
+
+function bookmarkLink(n) {
+  const a = document.createElement('a');
+  a.className = 'mark';
+  a.href = n.url;
+  a.title = n.title ? `${n.title}\n${n.url}` : n.url;
+  const img = document.createElement('img');
+  img.alt = '';
+  img.src = faviconUrl(n.url);
+  const label = document.createElement('span');
+  label.textContent = n.title;
+  a.append(img, label);
+  return a;
+}
+
+// A folder opens a popover under its button; folders inside it are listed
+// with their links indented below.
+// ponytail: nested folders open flat, add submenus if deep trees get long.
+function folderItems(nodes) {
+  return nodes.flatMap((n) => {
+    if (n.url) return n.url.startsWith('javascript:') ? [] : [bookmarkLink(n)];
+    const head = document.createElement('div');
+    head.className = 'menu-folder';
+    head.textContent = n.title;
+    const sub = document.createElement('div');
+    sub.className = 'menu-sub';
+    sub.append(...folderItems(n.children || []));
+    return [head, sub];
+  });
+}
+
+function bookmarkFolder(n, i) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'mark';
+  btn.tabIndex = -1;
+  btn.style.anchorName = `--folder-${i}`;
+  btn.setAttribute('popovertarget', `folder-${i}`);
+  const label = document.createElement('span');
+  label.textContent = n.title;
+  btn.append(glyph('folder'), label);
+  const menu = document.createElement('div');
+  menu.className = 'menu';
+  menu.id = `folder-${i}`;
+  menu.popover = 'auto';
+  menu.style.positionAnchor = `--folder-${i}`;
+  const items = folderItems(n.children || []);
+  if (items.length) menu.append(...items);
+  else menu.append(Object.assign(document.createElement('div'), { className: 'menu-empty', textContent: 'Empty' }));
+  return [btn, menu];
+}
+
+// Seek's page stands in for the new tab page, where the browser would show
+// its bookmarks bar; it shows neither that bar nor tab groups here, so draw both.
+async function loadStage() {
+  // Chromium keeps the bookmarks bar as the root's first folder.
+  const [root] = await chrome.bookmarks.getTree();
+  const nodes = (root.children?.[0]?.children || []).filter((n) => !n.url?.startsWith('javascript:'));
+  $bar.replaceChildren(...nodes.flatMap((n, i) => (n.url ? [bookmarkLink(n)] : bookmarkFolder(n, i))));
+  $bar.hidden = !nodes.length;
+
+  const [groups, tabs] = await Promise.all([
+    chrome.tabGroups.query({ windowId: chrome.windows.WINDOW_ID_CURRENT }),
+    chrome.tabs.query({ currentWindow: true }),
+  ]);
+  $groups.replaceChildren(
+    ...groups.map((g) => {
+      const members = tabs.filter((t) => t.groupId === g.id);
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'group';
+      b.tabIndex = -1;
+      b.dataset.color = g.color;
+      b.dataset.id = g.id;
+      const count = document.createElement('span');
+      count.className = 'count';
+      count.textContent = members.length === 1 ? '1 tab' : `${members.length} tabs`;
+      if (g.title) b.append(g.title);
+      b.append(count);
+      return b;
+    })
+  );
+  $groups.hidden = !groups.length;
+}
+
+// A bookmark opens in this tab, like the browser's bar; ⌘/Ctrl or the middle
+// button opens it in a background tab. Done by hand because a link can't
+// open the browser's own pages from an extension page.
+function openMark(e) {
+  const a = e.target.closest('a.mark');
+  if (!a || e.button > 1) return;
+  e.preventDefault();
+  if (e.button === 1 || e.metaKey || e.ctrlKey) chrome.tabs.create({ url: a.href, active: false });
+  else chrome.tabs.update(state.originTab?.id, { url: a.href });
+}
+
+// A group opens on its most recently used tab, expanded.
+$groups.addEventListener('click', async (e) => {
+  const b = e.target.closest('.group');
+  if (!b) return;
+  const id = Number(b.dataset.id);
+  const [tab] = (await chrome.tabs.query({ groupId: id })).sort((a, b) => (b.lastAccessed || 0) - (a.lastAccessed || 0));
+  if (!tab) return;
+  await chrome.tabGroups.update(id, { collapsed: false });
+  await chrome.tabs.update(tab.id, { active: true });
+  close();
+});
+
 // ---------- actions ----------
 
 async function activate(index, { here = false } = {}) {
@@ -584,6 +696,7 @@ window.addEventListener('keydown', (e) => {
     activate(state.selected, { here: e.metaKey || e.ctrlKey });
   } else if (e.key === 'Escape') {
     e.preventDefault();
+    if (document.querySelector('.menu:popover-open')) return; // the browser closes the folder menu
     if (state.site) setSite(null);
     else close();
   } else if (e.key === 'Backspace' && state.site && !$q.value) {
@@ -611,6 +724,9 @@ $results.addEventListener('click', (e) => {
 $results.addEventListener('mousedown', (e) => e.preventDefault()); // keep focus in the input
 
 document.getElementById('backdrop').addEventListener('mousedown', close);
+$bar.addEventListener('click', openMark);
+$bar.addEventListener('auxclick', openMark);
+for (const el of [$bar, $groups]) el.addEventListener('mousedown', (e) => e.preventDefault()); // keep focus in the input
 if (!PREVIEW) window.addEventListener('focus', () => $q.focus());
 
 // ---------- start ----------
@@ -626,3 +742,4 @@ if (!PREVIEW) $q.focus();
   })
   .catch(() => {});
 loadSources();
+if (MODE === 'page') loadStage().catch((err) => console.error('Seek:', err));
