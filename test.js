@@ -2,7 +2,7 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { scoreItem, siteFor, titleCoverage, sitesFromHistory, matchToken } from './fuzzy.js';
-import { SITES, validateSite, shortcutKeys, sitesUpdate, isNewTab, displayUrl } from './settings.js';
+import { SITES, validateSite, shortcutKeys, sitesUpdate, isNewTab, displayUrl, typedUrl } from './settings.js';
 import { dominantColor, pillColors, contrast } from './color.js';
 
 const mdn = { title: 'MDN Web Docs', displayUrl: 'developer.mozilla.org' };
@@ -115,4 +115,18 @@ test('sites from history are named by their shared title suffix', () => {
 
 test('a whole-word hit beats an earlier mid-word one', () => {
   assert.deepEqual(matchToken('music', 'Gamusic | Music').positions, [10, 11, 12, 13, 14]);
+});
+
+test('typed URLs open, everything else searches', () => {
+  assert.equal(typedUrl('example.com'), 'https://example.com/');
+  assert.equal(typedUrl('github.com/flutter/flutter'), 'https://github.com/flutter/flutter');
+  assert.equal(typedUrl('localhost:3000'), 'http://localhost:3000/');
+  assert.equal(typedUrl('192.168.1.1/admin'), 'http://192.168.1.1/admin');
+  assert.equal(typedUrl('http://foo.test/x'), 'http://foo.test/x');
+  assert.equal(typedUrl('chrome://settings'), 'chrome://settings');
+  assert.equal(typedUrl('about:blank'), 'about:blank');
+  assert.equal(typedUrl('flutter docs'), null);
+  assert.equal(typedUrl('youtube'), null);
+  assert.equal(typedUrl('what is example.com'), null);
+  assert.equal(typedUrl('3.14'), null);
 });

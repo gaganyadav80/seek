@@ -1,6 +1,6 @@
 import { scoreItem, siteFor, titleCoverage, sitesFromHistory } from './fuzzy.js';
 import { dominantColor, pillColors } from './color.js';
-import { CHROME_PAGES, loadPrefs, watchPrefs, faviconUrl, isNewTab, displayUrl } from './settings.js';
+import { CHROME_PAGES, loadPrefs, watchPrefs, faviconUrl, isNewTab, displayUrl, typedUrl } from './settings.js';
 
 const params = new URLSearchParams(location.search);
 // frame: overlay on a page; popup: toolbar dropdown; page: Seek as a whole new tab
@@ -190,7 +190,10 @@ function loadSources() {
 }
 
 // "Search the web" row: Chrome's default engine, or the site picked in settings.
+// A typed URL replaces it with a row that opens the URL.
 function webSearchItem(text) {
+  const typed = typedUrl(text);
+  if (typed) return { type: 'url', key: 'url', title: `Open ${text}`, url: typed, displayUrl: '' };
   const engine = prefs.sites.find((s) => s.keyword === prefs.webSearch);
   if (!engine) return { type: 'search', key: 'search', title: `Search the web for “${text}”`, displayUrl: '' };
   const url = engine.url.replace('%s', encodeURIComponent(text));
@@ -308,10 +311,11 @@ function rank({ keepSelection = false } = {}) {
   }
 
   state.results = results;
-  const keep = prevKey ? results.findIndex((r) => r.item.key === prevKey) : -1;
-  // The highlight starts on the first row: the web (or site) search once
-  // something is typed, so Enter searches; ↓ reaches the matches.
-  state.selected = keep >= 0 ? keep : 0;
+  const keep = prevKey && prevKey !== 'search' ? results.findIndex((r) => r.item.key === prevKey) : -1;
+  // The highlight starts on the best match below the web search row (↑ reaches it);
+  // a typed URL or a site search keeps the highlight on that first row.
+  const first = results[0]?.item.type === 'search' && results.length > 1 ? 1 : 0;
+  state.selected = keep >= 0 ? keep : first;
   renderResults();
 }
 

@@ -87,6 +87,24 @@ export function displayUrl(url) {
   }
 }
 
+/**
+ * The URL typed text names, or null for a search: a full URL with a scheme
+ * (https://…, chrome://…, about:blank), or a bare host like example.com/path,
+ * localhost:3000, or 192.168.1.1. Spaces always mean a search.
+ */
+// ponytail: any dotted word with a letter TLD counts ("node.js" opens node.js), Chrome's omnibox does the same.
+export function typedUrl(text) {
+  const t = (text || '').trim();
+  if (!t || /\s/.test(t)) return null;
+  if (/^([a-z][a-z0-9+.-]*:\/\/\S+|about:\S+)$/i.test(t)) return t;
+  if (!/^(localhost|[\w-]+(\.[\w-]+)*\.[a-z]{2,}|\d{1,3}(\.\d{1,3}){3}|\[[\da-f:]+\])(:\d+)?([/?#]\S*)?$/i.test(t)) return null;
+  try {
+    return new URL((/^(localhost|[\d[])/i.test(t) ? 'http://' : 'https://') + t).href;
+  } catch {
+    return null;
+  }
+}
+
 /** True for the browser's own new tab page (chrome://newtab, brave://newtab, edge://newtab…). */
 export function isNewTab(url) {
   return /^(?!https?:)[a-z-]+:\/\/(newtab|new-tab-page)(\/|$)/.test(url || '');
